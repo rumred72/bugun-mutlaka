@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bugün Mutlaka</title>
+<meta name="description" content="Günlük yapılacaklar: bugün mutlaka, bu hafta, bir gün; kilitli görevler ve sabah planı.">
+<meta name="theme-color" content="#FAF9F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#262624" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bugün Mutlaka">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<script src="vendor/Sortable.min.js"></script>
+<style>
+:root{
+  --bg:#FAF9F5; --surface:#FFFFFF; --surface-2:#F0EEE6; --ink:#141413; --muted:#6B6A64; --line:#E3E0D5;
+  --today:#B8452F; --week:#BF8B2E; --someday:#9C9A91; --lock:#D97757; --lock-soft:#F7E9E1; --ok:#5F8D63; --warn:#B8652F;
+  --shadow:0 1px 2px rgba(60,45,30,.05),0 3px 10px rgba(60,45,30,.05);
+  --display:"Source Serif 4","Tiempos Headline",Georgia,"Times New Roman",serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#262624; --surface:#30302E; --surface-2:#3A3A37; --ink:#F5F4EE; --muted:#A6A49B; --line:#45443F;
+    --today:#E07A62; --week:#D9A955; --someday:#8F8D85; --lock:#E08A6A; --lock-soft:#3D2F29; --ok:#86B58A; --warn:#E39A62;
+    --shadow:0 1px 2px rgba(0,0,0,.25),0 4px 14px rgba(0,0,0,.18);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#262624; --surface:#30302E; --surface-2:#3A3A37; --ink:#F5F4EE; --muted:#A6A49B; --line:#45443F;
+  --today:#E07A62; --week:#D9A955; --someday:#8F8D85; --lock:#E08A6A; --lock-soft:#3D2F29; --ok:#86B58A; --warn:#E39A62;
+  --shadow:0 1px 2px rgba(0,0,0,.25),0 4px 14px rgba(0,0,0,.18);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;background:var(--bg);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;padding-inline:16px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--lock);outline-offset:2px}
+svg{width:18px;height:18px;flex:none}
+.app{max-width:640px;margin:0 auto;padding-block:8px 80px}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 0;margin-inline:-16px;padding-inline:16px}
+.datebar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{margin:2px 0 0;font-family:var(--display);font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-.01em}
+.top-actions{display:flex;align-items:center;gap:6px}
+.sync{border:0;background:none;padding:6px 4px;border-radius:8px;font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.sync::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--someday)}
+.sync[data-s="ok"]::before{background:var(--ok)}
+.sync[data-s="syncing"]::before{background:var(--week)}
+.sync[data-s="needauth"]{color:var(--lock);font-weight:600}
+.sync[data-s="needauth"]::before{background:var(--lock)}
+.sync[data-s="error"]::before{background:var(--today)}
+.sync[data-s="offline"]::before{background:var(--someday)}
+.drive input{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:14px;color:var(--ink);width:100%}
+.icon-btn{border:0;background:transparent;width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;color:var(--muted)}
+.icon-btn:hover{background:var(--surface-2);color:var(--ink)}
+.tabs{display:flex;gap:4px;margin-top:12px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;background:none;padding:10px 12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+
+.view{display:flex;flex-direction:column;gap:22px;padding-top:16px}
+.summary{margin:0;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.summary b{color:var(--ink);font-weight:600}
+.banner{background:color-mix(in srgb,var(--warn) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);color:var(--ink);padding:10px 12px;border-radius:10px;font-size:14px}
+
+/* locked */
+.locked{background:var(--lock-soft);border:1.5px solid color-mix(in srgb,var(--lock) 55%,transparent);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.locked-head{display:flex;align-items:center;gap:8px;color:var(--lock);flex-wrap:wrap}
+.locked-head h2{margin:0;font-family:var(--display);font-size:18px;font-weight:700}
+.locked-head .quota{margin-left:auto;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.lcard{background:var(--surface);border-radius:12px;padding:12px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--shadow)}
+.lcard .title{font-size:17px;font-weight:600}
+.lcard.done .title{text-decoration:line-through;color:var(--muted)}
+.lage{font-size:12.5px;color:var(--today);font-weight:600}
+.lock-empty{margin:0;font-size:14px;color:var(--muted)}
+
+/* sections */
+.sec{display:flex;flex-direction:column;gap:8px}
+.sec-head{display:flex;align-items:center;gap:8px}
+.sec-head h2{margin:0;font-family:var(--display);font-size:18px;font-weight:700}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+[data-sec="today"] .dot,.dot.today{background:var(--today)}
+[data-sec="week"] .dot,.dot.week{background:var(--week)}
+[data-sec="someday"] .dot,.dot.someday{background:var(--someday)}
+.count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.count.over{color:var(--today);font-weight:600}
+.sec-head .spacer{flex:1}
+.collapse{border:0;background:none;color:var(--muted);font-size:13px;padding:4px 6px;border-radius:6px}
+.collapse:hover{background:var(--surface-2)}
+
+.tasks,.done-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tasks{min-height:6px}
+.task{background:var(--surface);border-radius:12px;display:flex;align-items:flex-start;gap:8px;padding:10px 6px 10px 4px;box-shadow:var(--shadow)}
+.grip{color:var(--muted);opacity:.55;padding:3px 0 0 2px;cursor:grab;touch-action:none;display:grid}
+.grip:hover{opacity:1}
+.check{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:transparent;flex:none;margin-top:1px;display:grid;place-items:center;padding:0;color:#fff}
+.check:hover{border-color:var(--ok)}
+.check svg{width:14px;height:14px;opacity:0}
+.done .check,.check[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.done .check svg,.check[aria-pressed="true"] svg{opacity:1}
+.lcard .check{width:26px;height:26px;border-color:var(--lock)}
+.task-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;border:0;background:none;text-align:left;padding:0}
+.title{font-weight:500;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px;color:var(--muted);align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--surface-2);border-radius:6px;padding:1px 7px;font-variant-numeric:tabular-nums}
+.chip svg{width:12px;height:12px}
+.chip.warn{background:color-mix(in srgb,var(--today) 16%,transparent);color:var(--today);font-weight:600}
+.note{font-size:13px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.col{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.subs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.subs li{display:flex;align-items:flex-start;gap:8px;font-size:14px}
+.subcheck{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--line);background:transparent;padding:0;display:grid;place-items:center;color:#fff;flex:none;margin-top:2px}
+.subcheck:hover{border-color:var(--ok)}
+.subcheck svg{width:11px;height:11px;opacity:0}
+.subcheck[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.subcheck[aria-pressed="true"] svg{opacity:1}
+.bar{display:block;height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;width:min(220px,100%);margin-top:3px}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:3px}
+.chip.prog{color:var(--ok);font-weight:600;background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.rv-good{font-size:12.5px;color:var(--ok);font-weight:600}
+.progress-field{display:flex;align-items:center;gap:12px}
+.progress-field input[type=range]{flex:1;accent-color:var(--lock);padding:0;background:none;border:0}
+.progress-field output{font-family:var(--display);font-size:22px;font-weight:600;min-width:3.2ch;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.backup{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.backup h4{margin:0;font-size:15px}
+.backup p{margin:0;font-size:13px;color:var(--muted)}
+.sdone{text-decoration:line-through;color:var(--muted)}
+.sub-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.sub-list li{display:flex;align-items:center;gap:8px}
+.sub-list input,.sub-add input{flex:1;min-width:0}
+.sub-add{display:flex;gap:6px}
+.done-list .task{box-shadow:none;background:transparent;padding-block:4px}
+.done-list .title{text-decoration:line-through;color:var(--muted)}
+.sortable-ghost{opacity:.35}
+.sortable-chosen{box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.empty{font-size:13.5px;color:var(--muted);padding:6px 4px;margin:0}
+
+.add{display:flex;gap:6px}
+.add input,.rv-add input{flex:1;min-width:0;border:1px dashed var(--line);background:transparent;border-radius:10px;padding:9px 12px}
+.add input:focus,.rv-add input:focus{border-style:solid;border-color:var(--ink);background:var(--surface);outline:none}
+.add select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 6px;font-size:13px;color:var(--muted)}
+.add button,.rv-add button{border:0;background:var(--ink);color:var(--bg);border-radius:10px;width:40px;display:grid;place-items:center}
+.add-warn{background:color-mix(in srgb,var(--today) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--today) 35%,transparent);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:8px}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.primary:disabled{opacity:.45;cursor:not-allowed}
+.btn.lockb{color:var(--lock);border-color:color-mix(in srgb,var(--lock) 50%,transparent)}
+.btn.lockb.solid{background:var(--lock);color:#fff;border-color:var(--lock)}
+.add button{background:var(--lock);color:#fff}
+.btn.danger{color:var(--today)}
+.btn.small{padding:5px 10px;font-size:13px}
+
+/* sheet */
+dialog{border:0;padding:0;border-radius:18px;background:var(--surface);color:var(--ink);width:min(520px,calc(100% - 24px));max-height:calc(100% - 32px);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(10,14,22,.45)}
+.sheet-body{padding:18px;display:flex;flex-direction:column;gap:14px}
+.sheet-head{display:flex;align-items:center;gap:8px}
+.sheet-head h3{margin:0;font-family:var(--display);font-size:20px;flex:1;display:flex;align-items:center;gap:6px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);font-weight:500}
+.field input,.field textarea,.field select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:15px;color:var(--ink);resize:vertical}
+.chips,.seg{display:flex;flex-wrap:wrap;gap:6px}
+.chips button,.seg button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 12px;font-size:13.5px;color:var(--ink)}
+.chips button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.sheet-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.sheet-actions .lead{margin-right:auto;display:flex;gap:8px;flex-wrap:wrap}
+.confirm{background:var(--lock-soft);border-radius:12px;padding:12px;font-size:14px;display:flex;flex-direction:column;gap:10px}
+.lock-note{margin:0;background:var(--lock-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.muted{color:var(--muted)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:18px}
+.stepper output{font-family:var(--display);font-size:22px;font-weight:700;min-width:1.5em;text-align:center;color:var(--ink)}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.set-row p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+
+/* review */
+.review{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 24px)}
+.review-inner{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.review h2{margin:0;font-family:var(--display);font-size:28px;line-height:1.1;text-wrap:balance}
+.review h3{margin:6px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.review p.lead{margin:0;color:var(--muted)}
+.steps{display:flex;gap:6px}
+.steps span{height:4px;flex:1;border-radius:2px;background:var(--line)}
+.steps span.on{background:var(--ink)}
+.rv-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rv-item{background:var(--surface);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow)}
+.rv-item.is-locked{border:1.5px solid color-mix(in srgb,var(--lock) 55%,transparent)}
+.rv-choices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.rv-choices button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 4px;font-size:13px;font-weight:600}
+.rv-choices button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.rv-choices button.del[aria-pressed="true"]{background:var(--today);border-color:var(--today);color:#fff}
+.rv-warn{font-size:12.5px;color:var(--today);font-weight:600}
+.rv-foot{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;position:sticky;bottom:0;background:var(--bg);padding-block:12px}
+.pick{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:12px;padding:12px;border:1.5px solid transparent;text-align:left;width:100%;box-shadow:var(--shadow)}
+.pick[aria-pressed="true"]{border-color:var(--lock);background:var(--lock-soft)}
+.pick .box{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;color:#fff;flex:none}
+.pick[aria-pressed="true"] .box{background:var(--lock);border-color:var(--lock)}
+.pick .box svg{width:14px;height:14px}
+.pick:disabled{cursor:default}
+.rv-add{display:flex;gap:6px}
+
+/* recurring */
+.rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rule{background:var(--surface);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow);width:100%;border:0;text-align:left}
+.rule .dot{margin-top:0}
+.rule-body{flex:1;min-width:0}
+.intro{margin:0;color:var(--muted);font-size:14px;max-width:60ch}
+
+/* history */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
+.stat .v{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;max-width:420px}
+.cal .h{font-size:11px;color:var(--muted);text-align:center;font-weight:600}
+.day{aspect-ratio:1;border:0;border-radius:8px;background:var(--surface-2);position:relative;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink);padding:0;max-width:100%}
+.day[data-l="1"]{background:color-mix(in srgb,var(--ok) 25%,var(--surface-2))}
+.day[data-l="2"]{background:color-mix(in srgb,var(--ok) 45%,var(--surface-2))}
+.day[data-l="3"]{background:color-mix(in srgb,var(--ok) 68%,var(--surface-2));color:#fff}
+.day[data-l="4"]{background:var(--ok);color:#fff}
+.day.future{background:transparent;color:var(--muted);opacity:.5}
+.day.is-today{outline:2px solid var(--ink);outline-offset:1px}
+.day[aria-pressed="true"]{outline:2px solid var(--lock);outline-offset:1px}
+.day i{position:absolute;right:4px;top:4px;width:7px;height:7px;border-radius:50%}
+.day i.ok{background:var(--lock)}
+.day i.miss{border:2px solid var(--today);width:8px;height:8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.detail{background:var(--surface);border-radius:12px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
+.detail h3,.hsec h3{margin:0;font-family:var(--display);font-size:17px}
+.detail ul{margin:0;padding-left:18px}
+.hsec{display:flex;flex-direction:column;gap:10px}
+
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:30;max-width:calc(100% - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media (max-width:600px){ input,select,textarea{font-size:16px!important} }
+@media (max-width:420px){ h1{font-size:26px} .stats .v{font-size:22px} .rv-choices button{font-size:12px} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="datebar">
+      <div><p class="eyebrow" id="dow"></p><h1 id="dateTitle"></h1></div>
+      <div class="top-actions">
+        <button class="sync" id="sync" data-s="local" type="button">Bu cihaz</button>
+        <button class="icon-btn" id="settingsBtn" aria-label="Ayarlar"></button>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="today" aria-selected="true">Bugün</button>
+      <button role="tab" data-tab="recurring" aria-selected="false">Tekrarlar</button>
+      <button role="tab" data-tab="history" aria-selected="false">Geçmiş</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="view" id="view-today">
+      <div id="banner" hidden></div>
+      <p class="summary" id="summary"></p>
+      <section class="locked" id="lockedBox"></section>
+
+      <section class="sec" data-sec="today">
+        <div class="sec-head"><span class="dot"></span><h2>Bugün mutlaka</h2><span class="count" id="count-today"></span></div>
+        <ul class="tasks" data-section="today" id="list-today"></ul>
+        <div class="add-warn" id="warn-today" hidden></div>
+        <form class="add" data-section="today"><input id="add-today" placeholder="Bugün mutlaka yapılacak…" maxlength="200" autocomplete="off"><select id="est-today" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
+        <ul class="done-list" id="done-today"></ul>
+      </section>
+
+      <section class="sec" data-sec="week">
+        <div class="sec-head"><span class="dot"></span><h2>Bu hafta</h2><span class="count" id="count-week"></span></div>
+        <ul class="tasks" data-section="week" id="list-week"></ul>
+        <form class="add" data-section="week"><input id="add-week" placeholder="Bu hafta içinde…" maxlength="200" autocomplete="off"><select id="est-week" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
+        <ul class="done-list" id="done-week"></ul>
+      </section>
+
+      <section class="sec" data-sec="someday">
+        <div class="sec-head"><span class="dot"></span><h2>Bir gün</h2><span class="count" id="count-someday"></span><span class="spacer"></span><button class="collapse" id="toggleSomeday"></button></div>
+        <div id="somedayBody" class="sec">
+          <ul class="tasks" data-section="someday" id="list-someday"></ul>
+          <form class="add" data-section="someday"><input id="add-someday" placeholder="Fikir, acelesi olmayan iş…" maxlength="200" autocomplete="off"><select id="est-someday" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
+          <ul class="done-list" id="done-someday"></ul>
+        </div>
+      </section>
+    </section>
+
+    <section class="view" id="view-recurring" hidden></section>
+    <section class="view" id="view-history" hidden></section>
+  </main>
+</div>
+
+<div class="review" id="review" hidden></div>
+<dialog id="sheet"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const ICON = {
+  lock: SVG('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+  grip: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>',
+  check: SVG('<polyline points="5 12 10 17 19 7"/>'),
+  plus: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
+  gear: SVG('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
+  repeat: SVG('<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>'),
+  clock: SVG('<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>'),
+  list: SVG('<line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><polyline points="3 6 4.5 7.5 7 5"/><polyline points="3 12 4.5 13.5 7 11"/><polyline points="3 18 4.5 19.5 7 17"/>'),
+  x: SVG('<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>'),
+};
+const SECTIONS = { today: 'Bugün mutlaka', week: 'Bu hafta', someday: 'Bir gün' };
+const EST = [[0,'Yok'],[15,'15 dk'],[30,'30 dk'],[60,'1 sa'],[90,'1,5 sa'],[120,'2 sa'],[180,'3 sa']];
+const DOW_SHORT = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+const LS_LOCAL = 'bugun-mutlaka-local-v1', LS_UI = 'bugun-mutlaka-ui-v1';
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+const today = () => keyOf(new Date());
+const addDays = (k, n) => { const d = parseKey(k); d.setDate(d.getDate()+n); return keyOf(d); };
+const dow = k => (parseKey(k).getDay()+6) % 7;
+const mondayOf = k => addDays(k, -dow(k));
+const diffDays = (a, b) => Math.round((parseKey(b) - parseKey(a)) / 864e5);
+const fmtLong = k => parseKey(k).toLocaleDateString('tr-TR', { day:'numeric', month:'long' });
+const fmtDow = k => parseKey(k).toLocaleDateString('tr-TR', { weekday:'long' });
+const fmtMin = m => { if (!m) return ''; const h = Math.floor(m/60), r = m%60; return h ? (r ? `${h} sa ${r} dk` : `${h} sa`) : `${r} dk`; };
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const byOrder = (a, b) => (a.order||0) - (b.order||0);
+
+let ui = { tab:'today', somedayOpen:false, selDay:null };
+try { Object.assign(ui, JSON.parse(localStorage.getItem(LS_UI) || '{}')); } catch {}
+const saveUi = () => { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch {} };
+
+/* ---------- store & backends ---------- */
+const store = { tasks:new Map(), recurring:new Map(), days:new Map(), meta:null };
+const loaded = new Set();
+let backend = null, ready = false, currentDay = today();
+
+const LS_DATA = 'bugun-mutlaka-data-v1', LS_SYNC = 'bugun-mutlaka-sync-v1';
+const local = (() => {
+  let st = { docs: {}, dead: {} };
+  try { const raw = JSON.parse(localStorage.getItem(LS_DATA) || 'null'); if (raw && raw.docs) st = { docs: raw.docs, dead: raw.dead || {} }; } catch {}
+  let cb = null;
+  const persist = () => { try { localStorage.setItem(LS_DATA, JSON.stringify(st)); } catch { toast('Cihaz depolaması yazılamadı. Hemen yedek al.'); } };
+  const emit = () => {
+    if (!cb) return;
+    for (const c of ['tasks','recurring','days'])
+      cb(c, Object.entries(st.docs).filter(([k]) => k.startsWith(c + '/')).map(([k, v]) => [k.slice(c.length + 1), v]));
+    cb('meta', st.docs['meta/state'] || null);
+  };
+  return {
+    kind: 'local',
+    start(c) { cb = c; emit(); },
+    async set(p, d) { const doc = JSON.parse(JSON.stringify(d)); doc._u = Date.now(); st.docs[p] = doc; delete st.dead[p]; persist(); sync.soon(); },
+    async del(p) { delete st.docs[p]; st.dead[p] = Date.now(); persist(); sync.soon(); },
+    snapshot: () => st,
+    replace(next) { st = next; persist(); emit(); },
+  };
+})();
+
+function mergeState(a, b) {
+  const docs = {}, dead = {}, cutoff = Date.now() - 90 * 864e5;
+  const keys = new Set([...Object.keys(a.docs), ...Object.keys(b.docs), ...Object.keys(a.dead), ...Object.keys(b.dead)]);
+  for (const k of keys) {
+    const da = a.docs[k], db = b.docs[k];
+    const doc = !da ? db : !db ? da : ((db._u || 0) > (da._u || 0) ? db : da);
+    const t = Math.max(a.dead[k] || 0, b.dead[k] || 0);
+    if (t && (!doc || t >= (doc._u || 0))) { if (t > cutoff) dead[k] = t; }
+    else if (doc) docs[k] = doc;
+  }
+  return { docs, dead };
+}
+const fingerprint = st => JSON.stringify([Object.keys(st.docs).sort().map(k => [k, st.docs[k]._u || 0]), Object.keys(st.dead).sort()]);
+
+const sync = (() => {
+  const S = { clientId: '', token: '', exp: 0, fileId: '', lastOk: 0, busy: false, again: false, timer: null, status: 'local' };
+  try { Object.assign(S, JSON.parse(localStorage.getItem(LS_SYNC) || '{}')); } catch {}
+  const save = () => { try { localStorage.setItem(LS_SYNC, JSON.stringify({ clientId: S.clientId, token: S.token, exp: S.exp, fileId: S.fileId, lastOk: S.lastOk })); } catch {} };
+  const setStatus = st => { S.status = st; setSync(st); if (sheetState?.kind === 'settings') drawDrive(); };
+  const tokenOk = () => S.token && Date.now() < S.exp - 60000;
+  let gis = null;
+  const loadGis = () => gis || (gis = new Promise((res, rej) => {
+    if (window.google?.accounts?.oauth2) return res();
+    const el = document.createElement('script'); el.src = 'https://accounts.google.com/gsi/client'; el.async = true;
+    el.onload = () => res(); el.onerror = () => { gis = null; rej(new Error('gis')); };
+    document.head.append(el);
+  }));
+  function requestToken() {
+    return new Promise((res, rej) => {
+      const tc = google.accounts.oauth2.initTokenClient({
+        client_id: S.clientId, scope: 'https://www.googleapis.com/auth/drive.appdata', prompt: '',
+        callback: r => { if (r.error) return rej(r); S.token = r.access_token; S.exp = Date.now() + (Number(r.expires_in) || 3600) * 1000; save(); res(); },
+        error_callback: e => rej(e),
+      });
+      tc.requestAccessToken();
+    });
+  }
+  async function api(url, opt = {}) {
+    const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + S.token, ...(opt.headers || {}) } });
+    if (r.status === 401 || r.status === 403) { S.token = ''; save(); const e = new Error('auth'); e.auth = true; throw e; }
+    if (!r.ok) { const e = new Error('http ' + r.status); e.status = r.status; throw e; }
+    return r;
+  }
+  async function findFile() {
+    if (S.fileId) return S.fileId;
+    const q = encodeURIComponent("name='bugun-mutlaka.json'");
+    const j = await (await api(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&fields=files(id)`)).json();
+    S.fileId = j.files && j.files[0] ? j.files[0].id : ''; save();
+    return S.fileId;
+  }
+  async function run(interactive) {
+    if (!S.clientId) return;
+    if (S.busy) { S.again = true; return; }
+    if (!tokenOk()) {
+      if (!interactive) { setStatus('needauth'); return; }
+      try { if (!window.google?.accounts?.oauth2) await loadGis(); await requestToken(); }
+      catch (e) { console.warn(e); setStatus('needauth'); toast('Google girişi tamamlanmadı. Tekrar dene.'); return; }
+    }
+    S.busy = true; setStatus('syncing');
+    try {
+      let id = await findFile(), remote = { docs: {}, dead: {} };
+      if (id) {
+        try { const j = await (await api(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`)).json(); if (j && j.docs) remote = { docs: j.docs, dead: j.dead || {} }; }
+        catch (e) { if (e.status === 404) { S.fileId = ''; id = ''; } else throw e; }
+      }
+      const loc = local.snapshot(), merged = mergeState(loc, remote);
+      if (fingerprint(merged) !== fingerprint(loc)) local.replace(merged);
+      if (!id || fingerprint(merged) !== fingerprint(remote)) {
+        const body = JSON.stringify({ app: 'bugun-mutlaka', v: 1, savedAt: new Date().toISOString(), ...merged });
+        if (id) await api(`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body });
+        else {
+          const bd = 'bm' + Date.now();
+          const metaPart = JSON.stringify({ name: 'bugun-mutlaka.json', parents: ['appDataFolder'], mimeType: 'application/json' });
+          const mp = `--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metaPart}\r\n--${bd}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${bd}--`;
+          const j = await (await api('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + bd }, body: mp })).json();
+          S.fileId = j.id;
+        }
+      }
+      S.lastOk = Date.now(); save(); setStatus('ok');
+    } catch (e) {
+      console.warn(e);
+      setStatus(e.auth ? 'needauth' : navigator.onLine === false ? 'offline' : 'error');
+    } finally {
+      S.busy = false;
+      if (S.again) { S.again = false; setTimeout(() => run(false), 400); }
+    }
+  }
+  return {
+    S, run, tokenOk, loadGis,
+    get enabled() { return !!S.clientId; },
+    soon() { if (!S.clientId) return; clearTimeout(S.timer); S.timer = setTimeout(() => run(false), 2000); },
+    configure(id) { S.clientId = id.trim(); S.token = ''; S.exp = 0; S.fileId = ''; save(); },
+    disconnect() {
+      if (S.token && window.google?.accounts?.oauth2) { try { google.accounts.oauth2.revoke(S.token, () => {}); } catch {} }
+      S.clientId = ''; S.token = ''; S.exp = 0; S.fileId = ''; S.lastOk = 0; save(); setStatus('local');
+    },
+    initialStatus() { return !S.clientId ? 'local' : tokenOk() ? 'ok' : 'needauth'; },
+  };
+})();
+
+function onData(kind, payload) {
+  if (kind === 'meta') store.meta = payload;
+  else store[kind] = new Map(payload.map(([id, d]) => [id, { ...d, id }]));
+  loaded.add(kind);
+  if (!ready && ['tasks','recurring','days','meta'].every(k => loaded.has(k))) {
+    ready = true;
+    if (!store.meta) putMeta({ lastReview: today(), lockLimit: 3, todayLimit: 5 });
+  }
+  if (ready) maybeReview();
+  scheduleRender();
+}
+
+const queues = new Map();
+function enqueue(path, op) {
+  const prev = queues.get(path) || Promise.resolve();
+  const run = async () => {
+    try { await op(); }
+    catch (e) {
+      if (e && e.code === 'unavailable') { await new Promise(r => setTimeout(r, 400 + Math.random()*600)); try { await op(); return; } catch {} }
+      if (e && e.code === 'quota_exceeded') toast('Depolama sınırı doldu. Eski tekrarlayan görevleri silmeyi dene.');
+      else toast('Kaydedilemedi. Bağlantını kontrol edip tekrar dene.');
+      console.warn(e);
+    }
+  };
+  const p = prev.then(run);
+  queues.set(path, p);
+  return p;
+}
+function put(coll, id, data) {
+  const clean = { ...data }; delete clean.id;
+  store[coll].set(id, { ...clean, id });
+  scheduleRender();
+  return enqueue(`${coll}/${id}`, () => backend.set(`${coll}/${id}`, clean));
+}
+function remove(coll, id) {
+  store[coll].delete(id);
+  scheduleRender();
+  return enqueue(`${coll}/${id}`, () => backend.del(`${coll}/${id}`));
+}
+function putMeta(patch) {
+  store.meta = { lastReview: today(), lockLimit: 3, todayLimit: 5, ...(store.meta || {}), ...patch };
+  const clean = { ...store.meta };
+  scheduleRender();
+  return enqueue('meta/state', () => backend.set('meta/state', clean));
+}
+const meta = () => store.meta || { lockLimit: 3, todayLimit: 5 };
+const tasksArr = () => [...store.tasks.values()];
+function dayDoc(d) {
+  const x = store.days.get(d);
+  return x ? { date:d, done:[], lockedIds:[], lockedDoneIds:[], missed:0, ...x } : { date:d, done:[], lockedIds:[], lockedDoneIds:[], missed:0 };
+}
+function patchDay(d, fn) { const doc = structuredClone(dayDoc(d)); delete doc.id; fn(doc); put('days', d, doc); }
+
+/* ---------- task operations ---------- */
+function endOrder(sec) { let m = 0; for (const x of store.tasks.values()) if (x.section === sec && (x.order||0) > m) m = x.order; return m + 1; }
+function createTask(p) {
+  const t = today(), id = newId();
+  put('tasks', id, {
+    title: p.title, note: p.note || '', est: p.est || 0, section: p.section,
+    order: p.order ?? endOrder(p.section), day: t, weekOf: mondayOf(t),
+    locked: false, lockedOn: null, done: false, doneOn: null, doneAt: null,
+    postponed: 0, created: Date.now(), recurId: p.recurId || null,
+    subs: (p.subs || []).map(x => ({ id: newId(), t: x.t, d: false })),
+  });
+  return id;
+}
+function moveTask(x, section, order) {
+  if (x.locked) return;
+  const t = today();
+  put('tasks', x.id, { ...x, section, order: order ?? endOrder(section), day: section === 'today' ? t : x.day, weekOf: section === 'week' ? mondayOf(t) : x.weekOf });
+}
+function toggleDone(x) {
+  const t = today();
+  if (!x.done) {
+    put('tasks', x.id, { ...x, done: true, doneOn: t, doneAt: Date.now() });
+    patchDay(t, d => {
+      d.done = d.done.filter(e => e.id !== x.id);
+      d.done.push({ id: x.id, t: x.title, s: x.section, l: !!x.locked, e: x.est || 0 });
+      if (x.locked && !d.lockedDoneIds.includes(x.id)) d.lockedDoneIds.push(x.id);
+    });
+    if (x.locked) {
+      const open = tasksArr().filter(y => y.locked && !y.done && y.id !== x.id).length;
+      toast(open ? 'Kilitli görev bitti.' : 'Bugünün kilitli görevlerinin hepsi bitti.');
+    }
+  } else {
+    const on = x.doneOn || t;
+    put('tasks', x.id, { ...x, done: false, doneOn: null, doneAt: null });
+    patchDay(on, d => { d.done = d.done.filter(e => e.id !== x.id); d.lockedDoneIds = d.lockedDoneIds.filter(i => i !== x.id); });
+  }
+}
+function lockTask(x) {
+  const t = today(), lim = meta().lockLimit || 3, used = dayDoc(t).lockedIds.length;
+  if (used >= lim) { toast(`Bugün en fazla ${lim} görev kilitleyebilirsin. Sınırı ayarlardan değiştirebilirsin.`); return false; }
+  put('tasks', x.id, { ...x, section: 'today', day: t, locked: true, lockedOn: x.lockedOn || t, order: x.section === 'today' ? x.order : endOrder('today') });
+  patchDay(t, d => { if (!d.lockedIds.includes(x.id)) d.lockedIds.push(x.id); });
+  return true;
+}
+const effProg = x => { const n = (x.subs || []).length; return n ? Math.round(100 * x.subs.filter(s => s.d).length / n) : (x.prog || 0); };
+const remainEst = x => Math.round((x.est || 0) * (1 - effProg(x) / 100));
+function recordProgress(before, after) {
+  const a = effProg(before), b = effProg(after);
+  if (a === b || after.done) return;
+  patchDay(today(), d => {
+    d.prog = d.prog || [];
+    const e = d.prog.find(p => p.id === after.id);
+    if (e) { e.b = b; e.t = after.title; if (e.a === e.b) d.prog = d.prog.filter(p => p !== e); }
+    else d.prog.push({ id: after.id, t: after.title, a, b });
+  });
+}
+const activeToday = () => tasksArr().filter(x => x.section === 'today' && !x.done).length;
+
+/* ---------- recurring ---------- */
+function ruleMatches(r, k) {
+  const d = dow(k);
+  if (r.type === 'daily') return true;
+  if (r.type === 'weekdays') return d < 5;
+  if (r.type === 'days') return (r.days || []).includes(d);
+  if (r.type === 'monthly') { const dt = parseKey(k); const last = new Date(dt.getFullYear(), dt.getMonth()+1, 0).getDate(); return dt.getDate() === Math.min(r.dom || 1, last); }
+  return false;
+}
+function ruleText(r) {
+  if (r.type === 'daily') return 'Her gün';
+  if (r.type === 'weekdays') return 'Hafta içi her gün';
+  if (r.type === 'days') return (r.days || []).slice().sort().map(i => DOW_SHORT[i]).join(', ') || 'Gün seçilmedi';
+  if (r.type === 'monthly') return `Her ayın ${r.dom}. günü`;
+  return '';
+}
+function generateFor(r, t) {
+  if (r.lastGen === t || !ruleMatches(r, t)) return;
+  for (const x of tasksArr()) if (x.recurId === r.id && !x.done && !x.locked) remove('tasks', x.id);
+  createTask({ title: r.title, note: r.note, est: r.est, section: r.section, recurId: r.id, subs: r.subs, order: r.section === 'today' ? 0.5 - Math.random()*0.01 : undefined });
+  const rr = { ...r }; rr.lastGen = t;
+  put('recurring', r.id, rr);
+}
+
+/* ---------- morning review ---------- */
+let review = null, reviewedDay = null;
+function maybeReview() {
+  const t = today();
+  if (t !== currentDay) currentDay = t;
+  if (!ready || review || !store.meta || reviewedDay === t) return;
+  if ((store.meta.lastReview || t) < t) startReview(t);
+}
+function startReview(t) {
+  const thisMon = mondayOf(t);
+  const missedBy = {};
+  for (const x of tasksArr()) if (!x.done && x.section === 'today' && (x.day || t) < t) missedBy[x.day] = (missedBy[x.day] || 0) + 1;
+  for (const [d, n] of Object.entries(missedBy)) { const doc = dayDoc(d); if (doc.missed !== n) patchDay(d, dd => { dd.missed = n; }); }
+  for (const x of tasksArr()) if (x.done && (x.doneOn || t) < t) remove('tasks', x.id);
+  for (const r of store.recurring.values()) generateFor(r, t);
+
+  const rank = x => (x.locked ? 0 : x.section === 'today' ? 1 : 2);
+  const items = tasksArr()
+    .filter(x => !x.done && ((x.section === 'today' && (x.day || t) < t) || (x.section === 'week' && (x.weekOf || thisMon) < thisMon)))
+    .sort((a, b) => rank(a) - rank(b) || byOrder(a, b))
+    .map(x => ({ id: x.id, choice: x.locked ? 'today' : null }));
+  review = { date: t, step: items.length ? 1 : 2, items, picks: new Set() };
+  renderReview();
+}
+function applyReviewStep1() {
+  const t = review.date, thisMon = mondayOf(t);
+  for (const it of review.items) {
+    const x = store.tasks.get(it.id); if (!x) continue;
+    const cur = effProg(x), worked = cur > (x.progBase || 0);
+    const p = (x.postponed || 0) + (worked ? 0 : 1), base = { postponed: p, progBase: cur };
+    if (it.choice === 'delete') { remove('tasks', x.id); continue; }
+    if (it.choice === 'today') put('tasks', x.id, { ...x, ...base, section: 'today', day: t });
+    if (it.choice === 'week') put('tasks', x.id, { ...x, ...base, section: 'week', weekOf: thisMon });
+    if (it.choice === 'someday') put('tasks', x.id, { ...x, ...base, section: 'someday' });
+  }
+  const carried = review.items.filter(it => store.tasks.get(it.id)?.locked).map(it => it.id);
+  if (carried.length) patchDay(t, d => { for (const id of carried) if (!d.lockedIds.includes(id)) d.lockedIds.push(id); });
+  review.step = 2;
+  renderReview();
+}
+function finishReview() {
+  const t = review.date;
+  for (const id of review.picks) { const x = store.tasks.get(id); if (x && !x.locked) lockTask(x); }
+  putMeta({ lastReview: t });
+  reviewedDay = t;
+  review = null;
+  $('#review').hidden = true;
+  document.body.style.overflow = '';
+  render();
+}
+function renderReview() {
+  const el = $('#review'); el.hidden = false; document.body.style.overflow = 'hidden';
+  const t = review.date;
+  const head = `<p class="eyebrow">Günaydın · ${fmtLong(t)} ${fmtDow(t)}</p>
+    <div class="steps">${review.items.length ? `<span class="${review.step >= 1 ? 'on' : ''}"></span>` : ''}<span class="${review.step >= 2 ? 'on' : ''}"></span></div>`;
+  if (review.step === 1) {
+    const row = it => {
+      const x = store.tasks.get(it.id); if (!x) return '';
+      const cur = effProg(x), base = x.progBase || 0, worked = cur > base;
+      const next = (x.postponed || 0) + (worked ? 0 : 1);
+      const progLine = worked ? `<span class="rv-good">Dün ilerledi: %${base} → %${cur}</span>` : cur ? `<span class="chip prog">%${cur}</span>` : '';
+      if (x.locked) {
+        const age = diffDays(x.lockedOn || t, t);
+        return `<li class="rv-item is-locked"><div class="title">${esc(x.title)}</div>
+          <div class="meta"><span class="chip" style="color:var(--lock)">${ICON.lock} Kilitli · bugüne taşındı</span><span class="rv-warn">${age <= 1 ? 'Dün kilitliydi, bitmedi' : `${age} gündür kilitli, bitmedi`}</span>${progLine}</div></li>`;
+      }
+      const btn = (v, l, cls = '') => `<button type="button" class="${cls}" data-act="choose" data-id="${x.id}" data-v="${v}" aria-pressed="${it.choice === v}">${l}</button>`;
+      return `<li class="rv-item"><div class="title">${esc(x.title)}</div>
+        <div class="meta">${progLine}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}
+        ${worked ? '' : next >= 3 ? `<span class="rv-warn">Bu ${next}. ertelenişi olacak. Silmeyi ya da takvime yazmayı düşün.</span>` : next > 1 ? `<span>${next - 1} kez ertelendi</span>` : ''}</div>
+        <div class="rv-choices">${btn('today','Bugüne al')}${btn('week','Bu hafta')}${btn('someday','Bir gün')}${btn('delete','Sil','del')}</div></li>`;
+    };
+    const thisMon = mondayOf(t);
+    const fromDay = review.items.filter(it => { const x = store.tasks.get(it.id); return x && x.section === 'today'; });
+    const fromWeek = review.items.filter(it => { const x = store.tasks.get(it.id); return x && x.section === 'week' && (x.weekOf || thisMon) < thisMon; });
+    const left = review.items.filter(it => !it.choice && store.tasks.has(it.id)).length;
+    el.innerHTML = `<div class="review-inner">${head}
+      ${sync.enabled && !sync.tokenOk() ? `<div class="banner" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span>Diğer cihazdaki değişiklikleri almak için önce Drive'dan güncelle.</span><button class="btn small" data-act="rvSync">Drive'dan güncelle</button></div>` : ''}
+      <h2>Dünden kalanlara karar ver</h2>
+      <p class="lead">Her görev için bir seçim yap. Kilitli görevler bitene kadar bugünde kalır.</p>
+      ${fromDay.length ? `<h3>Bugün mutlaka'dan kalanlar</h3><ol class="rv-list">${fromDay.map(row).join('')}</ol>` : ''}
+      ${fromWeek.length ? `<h3>Geçen haftadan kalanlar</h3><ol class="rv-list">${fromWeek.map(row).join('')}</ol>` : ''}
+      <div class="rv-foot">
+        <button class="btn" data-act="allToday" ${left ? '' : 'disabled'}>Kalanların hepsini bugüne al</button>
+        <button class="btn primary" data-act="step2" ${left ? 'disabled' : ''}>${left ? `${left} karar kaldı` : 'Devam'}</button>
+      </div></div>`;
+  } else {
+    const lim = meta().lockLimit || 3;
+    const pre = tasksArr().filter(x => x.locked && !x.done).sort(byOrder);
+    const cands = tasksArr().filter(x => x.section === 'today' && !x.done && !x.locked).sort(byOrder);
+    const room = Math.max(0, lim - pre.length);
+    const pick = (x, on, dis) => `<button type="button" class="pick" data-act="pick" data-id="${x.id}" aria-pressed="${on}" ${dis ? 'disabled' : ''}>
+        <span class="box">${ICON.check}</span><span class="task-body"><span class="title">${esc(x.title)}</span>
+        <span class="meta">${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${dis ? `<span class="chip" style="color:var(--lock)">${ICON.lock} Zaten kilitli</span>` : ''}</span></span></button>`;
+    el.innerHTML = `<div class="review-inner">${head}
+      <h2>Bugün hangi görevler kesin bitecek?</h2>
+      <p class="lead">En fazla ${lim} görev kilitleyebilirsin${pre.length ? `, ${pre.length} tanesi dünden kilitli geldi` : ''}. Kilitlenen görev bitene kadar silinemez ve ertelenemez.</p>
+      <div class="rv-list">${pre.map(x => pick(x, true, true)).join('')}${cands.map(x => pick(x, review.picks.has(x.id), false)).join('')}</div>
+      ${!cands.length && !pre.length ? '<p class="empty">Bugün mutlaka listesi boş. Aşağıdan bugünün görevlerini ekleyebilirsin.</p>' : ''}
+      <form class="rv-add"><input id="rv-add-input" placeholder="Bugün için görev ekle…" maxlength="200" autocomplete="off"><button aria-label="Ekle">${ICON.plus}</button></form>
+      <div class="rv-foot"><span class="muted" style="align-self:center">${review.picks.size + pre.length}/${lim} kilit${room === 0 && !review.picks.size ? ' · hak doldu' : ''}</span>
+        <button class="btn primary" data-act="finish">Güne başla</button></div></div>`;
+  }
+}
+$('#review').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || !review) return;
+  const act = b.dataset.act;
+  if (act === 'choose') { const it = review.items.find(i => i.id === b.dataset.id); if (it) it.choice = b.dataset.v; renderReview(); }
+  if (act === 'allToday') { for (const it of review.items) if (!it.choice) it.choice = 'today'; renderReview(); }
+  if (act === 'step2') applyReviewStep1();
+  if (act === 'pick') {
+    const id = b.dataset.id, lim = meta().lockLimit || 3;
+    const pre = tasksArr().filter(x => x.locked && !x.done).length;
+    if (review.picks.has(id)) review.picks.delete(id);
+    else if (review.picks.size + pre >= lim) { toast(`En fazla ${lim} görev kilitleyebilirsin.`); return; }
+    else review.picks.add(id);
+    renderReview();
+  }
+  if (act === 'finish') finishReview();
+  if (act === 'rvSync') {
+    const t = review.date; review = null; $('#review').hidden = true; document.body.style.overflow = '';
+    sync.run(true).finally(() => { if (store.meta && store.meta.lastReview < t) startReview(t); });
+  }
+});
+$('#review').addEventListener('submit', e => {
+  e.preventDefault();
+  const inp = $('#rv-add-input'); const v = inp.value.trim(); if (!v) return;
+  createTask({ title: v, section: 'today' });
+  renderReview();
+  setTimeout(() => $('#rv-add-input')?.focus(), 0);
+});
+
+/* ---------- rendering ---------- */
+let renderPending = false, dragging = false;
+function scheduleRender() {
+  if (renderPending) return; renderPending = true;
+  requestAnimationFrame(() => { renderPending = false; if (!dragging) render(); });
+}
+const SYNC_LABEL = { local: 'Bu cihaz', ok: 'Drive ile eşit', syncing: 'Eşitleniyor', needauth: "Drive'a bağlan", offline: 'Çevrimdışı', error: 'Eşitleme hatası' };
+function setSync(s) { const el = $('#sync'); if (!el) return; el.dataset.s = s; el.textContent = SYNC_LABEL[s] || s; }
+const progChip = x => { const v = effProg(x); return v > 0 && !x.done ? `<span class="chip prog">%${v}</span>` : ''; };
+const progBar = x => { const v = effProg(x); return v > 0 && !x.done ? `<span class="bar"><i style="width:${v}%"></i></span>` : ''; };
+const subChip = x => { const n = (x.subs || []).length; if (!n) return ''; const d = x.subs.filter(s => s.d).length; return `<span class="chip">${ICON.list}${d}/${n}</span>`; };
+const subsHtml = x => (x.subs || []).length && !x.done ? `<ul class="subs">${x.subs.map(s => `<li><button class="subcheck" data-act="sub" data-id="${x.id}" data-sid="${s.id}" aria-pressed="${!!s.d}" aria-label="${s.d ? 'Geri al' : 'Tamamla'}: ${esc(s.t)}">${ICON.check}</button><span class="${s.d ? 'sdone' : ''}">${esc(s.t)}</span></li>`).join('')}</ul>` : '';
+function taskRow(x, { drag = true } = {}) {
+  const p = x.postponed || 0;
+  return `<li class="task${x.done ? ' done' : ''}" data-id="${x.id}">
+    ${drag && !x.done ? `<span class="grip" aria-hidden="true">${ICON.grip}</span>` : '<span style="width:6px"></span>'}
+    <button class="check" data-act="toggle" data-id="${x.id}" aria-label="${x.done ? 'Tamamlanmadı olarak işaretle' : 'Tamamla'}" aria-pressed="${!!x.done}">${ICON.check}</button>
+    <div class="col"><button class="task-body" data-act="edit" data-id="${x.id}">
+      <span class="title">${esc(x.title)}</span>
+      ${(x.est || p || x.recurId || (x.subs || []).length || effProg(x)) && !x.done ? `<span class="meta">
+        ${progChip(x)}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}
+        ${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}
+        ${p ? `<span class="chip${p >= 3 ? ' warn' : ''}">${p} kez ertelendi</span>` : ''}
+      </span>` : ''}
+      ${progBar(x)}
+      ${x.note && !x.done ? `<span class="note">${esc(x.note)}</span>` : ''}
+    </button>${subsHtml(x)}</div></li>`;
+}
+function render() {
+  const t = today();
+  $('#dow').textContent = fmtDow(t);
+  $('#dateTitle').textContent = fmtLong(t);
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === ui.tab)));
+  for (const v of ['today','recurring','history']) $('#view-' + v).hidden = ui.tab !== v;
+  if (ui.tab === 'today') renderToday();
+  if (ui.tab === 'recurring') renderRecurring();
+  if (ui.tab === 'history') renderHistory();
+}
+function renderToday() {
+  const t = today(), all = tasksArr(), m = meta();
+  const locked = all.filter(x => x.locked && (!x.done || x.doneOn === t)).sort(byOrder);
+  const lockedOpen = locked.filter(x => !x.done);
+  const dd = dayDoc(t);
+  const lim = m.lockLimit || 3, used = dd.lockedIds.length;
+  const openToday = all.filter(x => x.section === 'today' && !x.done);
+  const remainMin = openToday.reduce((s, x) => s + remainEst(x), 0);
+
+  $('#summary').innerHTML = !ready ? 'Yükleniyor…' :
+    `<b>${dd.done.length}</b> bitti · <b>${openToday.length}</b> görev bugün için açık${remainMin ? ` · kalan süre <b>${fmtMin(remainMin)}</b>` : ''}`;
+
+  const banner = $('#banner');
+  const evening = new Date().getHours() >= 18 && lockedOpen.length;
+  const hasData = store.tasks.size + store.days.size > 5;
+  const bkOld = ready && hasData && (!m.lastBackup || diffDays(m.lastBackup, t) >= 14);
+  banner.hidden = !evening && !bkOld;
+  banner.innerHTML = [
+    evening ? `<div class="banner">Saat 18:00'i geçti. ${lockedOpen.length} kilitli görevin hâlâ açık.</div>` : '',
+    bkOld ? `<div class="banner" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:${evening ? '8px' : '0'}"><span>${m.lastBackup ? '2 haftadır yedek almadın.' : 'Henüz hiç yedek almadın.'}</span><button class="btn small" data-act="openSettings">Yedek al</button></div>` : '',
+  ].join('');
+
+  $('#lockedBox').innerHTML = `<div class="locked-head">${ICON.lock}<h2>Kilitli</h2>
+      <span class="count">${locked.length ? `${locked.length - lockedOpen.length}/${locked.length} bitti` : ''}</span>
+      <span class="quota">${Math.max(0, lim - used)} kilit hakkın kaldı</span></div>
+    ${locked.length ? locked.map(x => {
+      const age = diffDays(x.lockedOn || t, t);
+      return `<div class="lcard${x.done ? ' done' : ''}">
+        <button class="check" data-act="toggle" data-id="${x.id}" aria-label="${x.done ? 'Tamamlanmadı olarak işaretle' : 'Tamamla'}" aria-pressed="${!!x.done}">${ICON.check}</button>
+        <div class="col"><button class="task-body" data-act="edit" data-id="${x.id}"><span class="title">${esc(x.title)}</span>
+          <span class="meta">${progChip(x)}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}
+          ${!x.done && age >= 1 ? `<span class="lage">${age === 1 ? 'Dün kilitliydi, bitmedi' : `${age} gündür kilitli`}</span>` : ''}
+          ${x.done ? '<span>Bitti</span>' : ''}</span>${progBar(x)}
+          ${x.note && !x.done ? `<span class="note">${esc(x.note)}</span>` : ''}</button>${subsHtml(x)}</div></div>`;
+    }).join('') : `<p class="lock-empty">Bugün kilitli görev yok. Bir göreve dokunup "Kilitle" diyerek günün en kritik işini sabitleyebilirsin.</p>`}`;
+
+  for (const s of ['today','week','someday']) {
+    const secTasks = all.filter(x => x.section === s && !x.locked);
+    const open = secTasks.filter(x => !x.done).sort(byOrder);
+    const done = secTasks.filter(x => x.done).sort((a, b) => (a.doneAt||0) - (b.doneAt||0));
+    const list = $('#list-' + s);
+    list.innerHTML = open.map(x => taskRow(x)).join('');
+    $('#done-' + s).innerHTML = done.map(x => taskRow(x, { drag: false })).join('');
+    const cnt = $('#count-' + s);
+    if (s === 'today') {
+      const n = openToday.length, tl = m.todayLimit || 5;
+      cnt.textContent = `${n}/${tl}`; cnt.classList.toggle('over', n > tl);
+      if (!open.length && !done.length) list.innerHTML = '';
+    } else cnt.textContent = open.length ? String(open.length) : '';
+  }
+  $('#toggleSomeday').textContent = ui.somedayOpen ? 'Gizle' : 'Göster';
+  $('#somedayBody').hidden = !ui.somedayOpen;
+}
+function renderRecurring() {
+  const rules = [...store.recurring.values()].sort((a, b) => (a.created||0) - (b.created||0));
+  $('#view-recurring').innerHTML = `
+    <p class="intro">Tekrarlayan görevler gününe denk gelince seçtiğin bölüme kendiliğinden eklenir. Bitmemiş eski kopyası varsa yenisiyle değiştirilir.</p>
+    ${rules.length ? `<ul class="rules">${rules.map(r => `<li><button class="rule" data-act="editRule" data-id="${r.id}">
+      <span class="dot ${r.section}"></span><span class="rule-body"><span class="title">${esc(r.title)}</span>
+      <span class="meta"><span>${ruleText(r)}</span><span>· ${SECTIONS[r.section]}</span>${(r.subs || []).length ? `<span class="chip">${ICON.list}${r.subs.length} alt görev</span>` : ''}${r.est ? `<span class="chip">${ICON.clock}${fmtMin(r.est)}</span>` : ''}</span></span></button></li>`).join('')}</ul>`
+      : '<p class="empty">Henüz tekrarlayan görev yok. Örneğin "Spor · Pzt, Çar, Cum" ya da "Faturaları kontrol et · her ayın 1\'i".</p>'}
+    <div><button class="btn primary" data-act="newRule">${ICON.plus} Tekrarlayan görev ekle</button></div>`;
+}
+function renderHistory() {
+  const t = today(), mon = mondayOf(t);
+  const weekDays = [...Array(7)].map((_, i) => addDays(mon, i)).filter(k => k <= t);
+  let doneWeek = 0, planDone = 0, missed = 0;
+  for (const k of weekDays) { const d = dayDoc(k); doneWeek += d.done.length; planDone += d.done.filter(e => e.s === 'today' || e.l).length; missed += d.missed || 0; }
+  const rate = planDone + missed ? Math.round(100 * planDone / (planDone + missed)) : null;
+  const lockOk = d => d.lockedIds.length && d.lockedIds.every(id => d.lockedDoneIds.includes(id));
+  let streak = 0;
+  if (lockOk(dayDoc(t))) streak++;
+  for (let k = addDays(t, -1); ; k = addDays(k, -1)) { if (lockOk(dayDoc(k))) streak++; else break; if (streak > 3650) break; }
+
+  const start = addDays(mon, -35);
+  const cells = [...Array(42)].map((_, i) => addDays(start, i));
+  const lvl = n => n === 0 ? 0 : n <= 2 ? 1 : n <= 4 ? 2 : n <= 6 ? 3 : 4;
+  const sel = ui.selDay && ui.selDay <= t ? ui.selDay : t;
+  const sd = dayDoc(sel);
+  const postponed = tasksArr().filter(x => !x.done && (x.postponed || 0) >= 2).sort((a, b) => b.postponed - a.postponed).slice(0, 5);
+
+  $('#view-history').innerHTML = `
+    <div class="stats">
+      <div class="stat"><div class="v">${doneWeek}</div><div class="l">bu hafta biten görev</div></div>
+      <div class="stat"><div class="v">${rate === null ? '–' : '%' + rate}</div><div class="l">"bugün mutlaka" planına uyma</div></div>
+      <div class="stat"><div class="v">${streak}</div><div class="l">gün üst üste kilitliler bitti</div></div>
+    </div>
+    <div class="hsec"><h3>Son 6 hafta</h3>
+      <div class="cal">${DOW_SHORT.map(d => `<span class="h">${d}</span>`).join('')}
+      ${cells.map(k => {
+        if (k > t) return `<span class="day future">${parseKey(k).getDate()}</span>`;
+        const d = dayDoc(k);
+        const lock = d.lockedIds.length ? (lockOk(d) ? 'ok' : (k < t ? 'miss' : '')) : '';
+        return `<button class="day${k === t ? ' is-today' : ''}" data-act="selDay" data-k="${k}" data-l="${lvl(d.done.length)}" aria-pressed="${k === sel}" aria-label="${fmtLong(k)}: ${d.done.length} görev">${parseKey(k).getDate()}${lock ? `<i class="${lock}"></i>` : ''}</button>`;
+      }).join('')}</div>
+      <div class="legend"><span><i style="background:var(--ok)"></i>Koyu = daha çok görev</span><span><i style="background:var(--lock)"></i>Kilitliler bitti</span><span><i style="border:2px solid var(--today)"></i>Kilitli kaldı</span></div>
+    </div>
+    <div class="detail"><h3>${fmtLong(sel)} ${fmtDow(sel)}</h3>
+      ${sd.done.length || (sd.prog || []).length ? '' : ''}${sd.done.length ? `<ul>${sd.done.map(e => `<li>${e.l ? '<b>Kilitli:</b> ' : ''}${esc(e.t)}${e.e ? ` <span class="muted">(${fmtMin(e.e)})</span>` : ''}</li>`).join('')}</ul>` : '<p class="empty" style="padding:0">Bu gün tamamlanan görev yok.</p>'}
+      ${(sd.prog || []).length ? `<p class="muted" style="margin:4px 0 0;font-size:13px;font-weight:600">İlerleme kaydedilenler</p><ul>${sd.prog.map(e => `<li>${esc(e.t)} <span class="muted">%${e.a} → %${e.b}</span></li>`).join('')}</ul>` : ''}
+      <span class="muted" style="font-size:13px">${[sd.lockedIds.length ? `${sd.lockedDoneIds.length}/${sd.lockedIds.length} kilitli görev bitti` : '', sd.missed ? `${sd.missed} görev ertesi güne sarktı` : ''].filter(Boolean).join(' · ')}</span>
+    </div>
+    <div class="hsec"><h3>En çok ertelenenler</h3>
+      ${postponed.length ? `<ul class="tasks">${postponed.map(x => taskRow(x, { drag: false })).join('')}</ul>` : '<p class="empty" style="padding:0">İki kereden fazla ertelenen görev yok.</p>'}
+    </div>`;
+}
+
+/* ---------- sheets ---------- */
+const sheet = $('#sheet');
+let sheetState = null;
+sheet.addEventListener('click', e => { if (e.target === sheet) sheet.close(); });
+const estChips = cur => EST.map(([v, l]) => `<button type="button" data-est="${v}" aria-pressed="${(cur||0) === v}">${l}</button>`).join('');
+const secSeg = cur => Object.entries(SECTIONS).map(([k, l]) => `<button type="button" data-sec="${k}" aria-pressed="${cur === k}">${l}</button>`).join('');
+function wirePress(container, attr, onPick) {
+  container.querySelectorAll(`[data-${attr}]`).forEach(b => b.addEventListener('click', () => {
+    container.querySelectorAll(`[data-${attr}]`).forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+    onPick(b.dataset[attr]);
+  }));
+}
+
+function subEditor(host, withChecks) {
+  const list = document.createElement('ul'); list.className = 'sub-list';
+  const addRow = document.createElement('div'); addRow.className = 'sub-add';
+  addRow.innerHTML = '<input placeholder="Alt görev ekle…" maxlength="200" autocomplete="off"><button type="button" class="btn small">Ekle</button>';
+  host.append(list, addRow);
+  const draw = () => {
+    list.innerHTML = sheetState.subs.map((s, i) => `<li>${withChecks ? `<button type="button" class="subcheck" data-si="${i}" aria-pressed="${!!s.d}" aria-label="Tamamla">${ICON.check}</button>` : ''}<input value="${esc(s.t)}" data-st="${i}" maxlength="200" aria-label="Alt görev"><button type="button" class="icon-btn" data-sx="${i}" aria-label="Alt görevi sil">${ICON.x}</button></li>`).join('');
+  };
+  draw();
+  list.addEventListener('click', e => {
+    const c = e.target.closest('[data-si]'); if (c) { const s = sheetState.subs[c.dataset.si]; s.d = !s.d; c.setAttribute('aria-pressed', String(s.d)); }
+    const x = e.target.closest('[data-sx]'); if (x) { sheetState.subs.splice(Number(x.dataset.sx), 1); draw(); }
+  });
+  list.addEventListener('input', e => { const i = e.target.dataset.st; if (i !== undefined) sheetState.subs[i].t = e.target.value; });
+  const inp = addRow.querySelector('input');
+  const add = () => { const v = inp.value.trim(); if (!v) return; sheetState.subs.push({ id: newId(), t: v, d: false }); inp.value = ''; draw(); inp.focus(); };
+  addRow.querySelector('button').onclick = add;
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+}
+const cleanSubs = () => sheetState.subs.map(s => ({ ...s, t: s.t.trim() })).filter(s => s.t);
+
+function openTaskSheet(id) {
+  const x = store.tasks.get(id); if (!x) return;
+  sheetState = { kind: 'task', id, est: x.est || 0, section: x.section, delArmed: false, prog: x.prog || 0, subs: (x.subs || []).map(s => ({ ...s })) };
+  sheet.innerHTML = `<form class="sheet-body" id="taskForm">
+    <div class="sheet-head"><h3>${x.locked ? ICON.lock + ' Kilitli görev' : 'Görevi düzenle'}</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    <label class="field"><span>Görev</span><input id="f-title" value="${esc(x.title)}" maxlength="200" required></label>
+    ${!x.done ? `<div class="field" id="f-prog-wrap"><span>İlerleme</span>
+      <div class="progress-field" id="f-prog-manual" ${(x.subs || []).length ? 'hidden' : ''}><input type="range" id="f-prog" min="0" max="100" step="10" value="${x.prog || 0}" aria-label="İlerleme yüzdesi"><output id="f-prog-out">%${x.prog || 0}</output></div>
+      <span id="f-prog-auto" class="muted" ${(x.subs || []).length ? '' : 'hidden'}>Alt görevlerden hesaplanıyor.</span></div>` : ''}
+    <div class="field"><span>Alt görevler</span><div id="f-subs" class="sec"></div></div>
+    <label class="field"><span>Not</span><textarea id="f-note" rows="2" maxlength="2000">${esc(x.note || '')}</textarea></label>
+    <div class="field"><span>Süre tahmini</span><div class="chips" id="f-est">${estChips(x.est)}</div></div>
+    ${x.locked ? '<p class="lock-note">Bu görev kilitli. Bitene kadar silinemez, taşınamaz ve ertelenemez.</p>'
+      : `<div class="field"><span>Bölüm</span><div class="seg" id="f-sec">${secSeg(x.section)}</div></div>`}
+    ${x.recurId ? '<p class="muted" style="margin:0;font-size:13px">Tekrarlayan görev. Kuralı Tekrarlar sekmesinden değiştirebilirsin.</p>' : ''}
+    ${(x.postponed || 0) ? `<p class="muted" style="margin:0;font-size:13px">${x.postponed} kez ertelendi.</p>` : ''}
+    <div class="confirm" id="lockConfirm" hidden>
+      <span>Kilitlenen görev bitene kadar <b>silinemez, ertelenemez ve kilidi açılamaz</b>. Bitmezse yarın sabah yine en üstte olur.</span>
+      <div class="row-btns"><button type="button" class="btn lockb solid" data-lockyes>${ICON.lock} Evet, kilitle</button><button type="button" class="btn" data-lockno>Vazgeç</button></div>
+    </div>
+    <div class="sheet-actions"><span class="lead">
+      ${!x.locked && !x.done ? `<button type="button" class="btn lockb" data-lock>${ICON.lock} Kilitle</button>` : ''}
+      ${!x.locked ? '<button type="button" class="btn danger" data-del>Sil</button>' : ''}</span>
+      <button type="submit" class="btn primary">Kaydet</button></div>
+  </form>`;
+  subEditor($('#f-subs', sheet), true);
+  const pr = $('#f-prog', sheet);
+  if (pr) pr.addEventListener('input', () => { sheetState.prog = Number(pr.value); $('#f-prog-out', sheet).textContent = '%' + pr.value; });
+  $('#f-subs', sheet).addEventListener('click', () => setTimeout(() => {
+    const has = cleanSubs().length; const m = $('#f-prog-manual', sheet), a = $('#f-prog-auto', sheet);
+    if (m) { m.hidden = !!has; a.hidden = !has; }
+  }, 0));
+  wirePress($('#f-est', sheet), 'est', v => sheetState.est = Number(v));
+  if (!x.locked) wirePress($('#f-sec', sheet), 'sec', v => sheetState.section = v);
+  sheet.querySelector('[data-close]').onclick = () => sheet.close();
+  const lb = sheet.querySelector('[data-lock]');
+  if (lb) lb.onclick = () => { $('#lockConfirm', sheet).hidden = false; };
+  const lno = sheet.querySelector('[data-lockno]'); if (lno) lno.onclick = () => { $('#lockConfirm', sheet).hidden = true; };
+  const lyes = sheet.querySelector('[data-lockyes]');
+  if (lyes) lyes.onclick = () => { const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur); if (lockTask(store.tasks.get(id))) sheet.close(); };
+  const del = sheet.querySelector('[data-del]');
+  if (del) del.onclick = () => {
+    if (!sheetState.delArmed) { sheetState.delArmed = true; del.textContent = 'Silmek için tekrar dokun'; return; }
+    remove('tasks', id); sheet.close(); toast('Görev silindi.');
+  };
+  $('#taskForm', sheet).addEventListener('submit', e => { e.preventDefault(); const cur = store.tasks.get(id); if (cur) saveTaskFields(cur); sheet.close(); });
+  sheet.showModal();
+}
+function saveTaskFields(x) {
+  const title = $('#f-title', sheet).value.trim() || x.title;
+  const next = { ...x, title, note: $('#f-note', sheet).value.trim(), est: sheetState.est, subs: cleanSubs(), prog: sheetState.prog };
+  if (!x.locked && sheetState.section !== x.section) {
+    const t = today();
+    Object.assign(next, { section: sheetState.section, order: endOrder(sheetState.section), day: sheetState.section === 'today' ? t : x.day, weekOf: sheetState.section === 'week' ? mondayOf(t) : x.weekOf });
+  }
+  put('tasks', x.id, next);
+  recordProgress(x, next);
+  if (!next.done && !(next.subs || []).length && next.prog >= 100) { toggleDone(store.tasks.get(x.id)); toast('%100 oldu, görev tamamlandı.'); }
+}
+
+function openRuleSheet(id) {
+  const r = id ? store.recurring.get(id) : { title:'', note:'', est:0, section:'today', type:'daily', days:[], dom: new Date().getDate() };
+  sheetState = { kind:'rule', id, est: r.est || 0, section: r.section, type: r.type, days: new Set(r.days || []), delArmed:false, subs: (r.subs || []).map(s => ({ id: newId(), t: s.t, d: false })) };
+  sheet.innerHTML = `<form class="sheet-body" id="ruleForm">
+    <div class="sheet-head"><h3>${ICON.repeat} ${id ? 'Tekrarı düzenle' : 'Tekrarlayan görev'}</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    <label class="field"><span>Görev</span><input id="r-title" value="${esc(r.title)}" maxlength="200" required placeholder="Örn. 30 dk yürüyüş"></label>
+    <div class="field"><span>Alt görevler (her seferinde eklenir)</span><div id="r-subs" class="sec"></div></div>
+    <label class="field"><span>Not</span><textarea id="r-note" rows="2" maxlength="2000">${esc(r.note || '')}</textarea></label>
+    <div class="field"><span>Ne sıklıkla?</span><div class="seg" id="r-type">
+      ${[['daily','Her gün'],['weekdays','Hafta içi'],['days','Belirli günler'],['monthly','Ayda bir']].map(([v,l]) => `<button type="button" data-type="${v}" aria-pressed="${r.type === v}">${l}</button>`).join('')}</div></div>
+    <div class="field" id="r-days-wrap" ${r.type === 'days' ? '' : 'hidden'}><span>Günler</span><div class="chips" id="r-days">
+      ${DOW_SHORT.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${sheetState.days.has(i)}">${d}</button>`).join('')}</div></div>
+    <label class="field" id="r-dom-wrap" ${r.type === 'monthly' ? '' : 'hidden'}><span>Ayın kaçıncı günü?</span><input id="r-dom" type="number" min="1" max="31" value="${r.dom || 1}" inputmode="numeric"></label>
+    <div class="field"><span>Hangi bölüme düşsün?</span><div class="seg" id="r-sec">${secSeg(r.section)}</div></div>
+    <div class="field"><span>Süre tahmini</span><div class="chips" id="r-est">${estChips(r.est)}</div></div>
+    <div class="sheet-actions"><span class="lead">${id ? '<button type="button" class="btn danger" data-del>Sil</button>' : ''}</span>
+      <button type="submit" class="btn primary">Kaydet</button></div>
+  </form>`;
+  sheet.querySelector('[data-close]').onclick = () => sheet.close();
+  subEditor($('#r-subs', sheet), false);
+  wirePress($('#r-est', sheet), 'est', v => sheetState.est = Number(v));
+  wirePress($('#r-sec', sheet), 'sec', v => sheetState.section = v);
+  wirePress($('#r-type', sheet), 'type', v => { sheetState.type = v; $('#r-days-wrap', sheet).hidden = v !== 'days'; $('#r-dom-wrap', sheet).hidden = v !== 'monthly'; });
+  $('#r-days', sheet).querySelectorAll('[data-day]').forEach(b => b.addEventListener('click', () => {
+    const i = Number(b.dataset.day);
+    sheetState.days.has(i) ? sheetState.days.delete(i) : sheetState.days.add(i);
+    b.setAttribute('aria-pressed', String(sheetState.days.has(i)));
+  }));
+  const del = sheet.querySelector('[data-del]');
+  if (del) del.onclick = () => {
+    if (!sheetState.delArmed) { sheetState.delArmed = true; del.textContent = 'Silmek için tekrar dokun'; return; }
+    remove('recurring', id); sheet.close(); toast('Tekrar silindi. Listede duran kopyalar yerinde kalır.');
+  };
+  $('#ruleForm', sheet).addEventListener('submit', e => {
+    e.preventDefault();
+    const title = $('#r-title', sheet).value.trim(); if (!title) return;
+    if (sheetState.type === 'days' && !sheetState.days.size) { toast('En az bir gün seç.'); return; }
+    const rid = id || newId();
+    const prev = id ? store.recurring.get(id) : null;
+    const rule = { title, note: $('#r-note', sheet).value.trim(), est: sheetState.est, section: sheetState.section, type: sheetState.type,
+      days: [...sheetState.days].sort(), subs: cleanSubs().map(s => ({ t: s.t })), dom: Math.min(31, Math.max(1, Number($('#r-dom', sheet).value) || 1)),
+      lastGen: prev?.lastGen || null, created: prev?.created || Date.now() };
+    put('recurring', rid, rule);
+    const t = today();
+    if (!id && store.meta && store.meta.lastReview === t && ruleMatches(rule, t)) { generateFor({ ...rule, id: rid }, t); toast('Bugüne denk geldiği için listene de eklendi.'); }
+    sheet.close();
+  });
+  sheet.showModal();
+}
+
+function openSettings() {
+  const m = meta();
+  sheetState = { kind:'settings' };
+  const step = (key, v, lo, hi, label, hint) => `<div class="set-row"><div><b>${label}</b><p>${hint}</p></div>
+    <div class="stepper"><button type="button" data-step="${key}" data-d="-1" aria-label="Azalt">−</button><output id="o-${key}">${v}</output><button type="button" data-step="${key}" data-d="1" aria-label="Artır">+</button></div></div>`;
+  sheet.innerHTML = `<div class="sheet-body">
+    <div class="sheet-head"><h3>Ayarlar</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    ${step('lockLimit', m.lockLimit || 3, 1, 5, 'Günlük kilit sayısı', 'Bir günde en fazla kaç görev kilitlenebilir.')}
+    ${step('todayLimit', m.todayLimit || 5, 3, 10, '"Bugün mutlaka" sınırı', 'Aşınca uyarı çıkar, istersen yine de eklersin.')}
+    <div class="backup">
+      <h4>Yedekleme</h4>
+      <p>${m.lastBackup ? `Son yedek: ${fmtLong(m.lastBackup)} (${diffDays(m.lastBackup, today()) === 0 ? 'bugün' : diffDays(m.lastBackup, today()) + ' gün önce'})` : 'Henüz yedek almadın.'} Yedek, tüm görevlerini, tekrarlarını ve geçmişini tek bir .json dosyasına kaydeder.</p>
+      <div class="row-btns"><button type="button" class="btn" id="bkSave">Yedeği indir</button><button type="button" class="btn" id="bkCopy">Panoya kopyala</button><label class="btn" for="bkFile" style="cursor:pointer">Yedekten geri yükle</label><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
+      <div class="confirm" id="bkConfirm" hidden></div>
+    </div>
+    <div class="backup drive" id="driveBox"></div>
+    <div class="backup"><h4>Telefona kurmak</h4><p>iPhone: Safari'de Paylaş → Ana Ekrana Ekle. Android: Chrome'da ⋮ → Ana ekrana ekle (ya da Uygulamayı yükle). Kurulunca internetsiz de çalışır.</p></div>
+  </div>`;
+  const bounds = { lockLimit:[1,5], todayLimit:[3,10] };
+  sheet.querySelector('[data-close]').onclick = () => sheet.close();
+  wireBackup();
+  drawDrive();
+  sheet.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.step, [lo, hi] = bounds[k];
+    const v = Math.min(hi, Math.max(lo, (meta()[k] || (k === 'lockLimit' ? 3 : 5)) + Number(b.dataset.d)));
+    putMeta({ [k]: v }); $('#o-' + k, sheet).textContent = v;
+  }));
+  sheet.showModal();
+}
+
+/* ---------- Google Drive settings ---------- */
+function drawDrive() {
+  const box = $('#driveBox', sheet); if (!box) return;
+  const S = sync.S;
+  if (!sync.enabled) {
+    box.innerHTML = `<h4>Google Drive ile eşitleme</h4>
+      <p>Şu an veriler sadece bu cihazda. Drive'ı bağlarsan telefon ve bilgisayar aynı listeyi görür, Drive'ında sürekli bir kopya durur. Bunun için bir kerelik Google "Client ID" gerekiyor (kurulum adımları rehberde).</p>
+      <input id="drvId" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off" spellcheck="false" aria-label="Google Client ID">
+      <div class="row-btns"><button type="button" class="btn primary" id="drvConnect">Drive'ı bağla</button></div>`;
+    const inp = $('#drvId', box);
+    inp.addEventListener('input', () => { if (/apps\.googleusercontent\.com\s*$/.test(inp.value)) sync.loadGis().catch(() => {}); });
+    inp.addEventListener('focus', () => sync.loadGis().catch(() => {}), { once: true });
+    $('#drvConnect', box).onclick = () => {
+      const v = inp.value.trim();
+      if (!/^[\w-]+\.apps\.googleusercontent\.com$/.test(v)) { toast('Client ID "….apps.googleusercontent.com" ile bitmeli.'); return; }
+      sync.configure(v); drawDrive(); sync.run(true);
+    };
+    return;
+  }
+  const last = S.lastOk ? new Date(S.lastOk).toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'henüz yok';
+  box.innerHTML = `<h4>Google Drive ile eşitleme</h4>
+    <p>Durum: <b>${SYNC_LABEL[S.status] || S.status}</b> · son eşitleme: ${last}. Uygulama her değişiklikten sonra kendiliğinden eşitler; Google oturumu saatte bir yenilenir, o zaman üstteki "Drive'a bağlan"a dokunman yeterli.</p>
+    <div class="row-btns"><button type="button" class="btn primary" id="drvNow">Şimdi eşitle</button><button type="button" class="btn danger" id="drvOff">Bağlantıyı kaldır</button></div>`;
+  $('#drvNow', box).onclick = () => sync.run(true);
+  $('#drvOff', box).onclick = e => {
+    if (e.target.dataset.armed) { sync.disconnect(); drawDrive(); toast('Drive bağlantısı kaldırıldı. Veriler bu cihazda duruyor.'); return; }
+    e.target.dataset.armed = '1'; e.target.textContent = 'Kaldırmak için tekrar dokun';
+  };
+}
+
+/* ---------- backup ---------- */
+function buildBackup() {
+  const strip = m => [...m.values()].map(x => { const c = { ...x }; return c; });
+  return JSON.stringify({ app: 'bugun-mutlaka', version: 1, exportedAt: new Date().toISOString(),
+    meta: store.meta, tasks: strip(store.tasks), recurring: strip(store.recurring), days: strip(store.days) }, null, 1);
+}
+function wireBackup() {
+  const json = () => buildBackup();
+  const mark = () => { putMeta({ lastBackup: today() }); };
+  $('#bkSave', sheet).onclick = async () => {
+    const name = `bugun-mutlaka-yedek-${today()}.json`;
+    const file = new File([json()], name, { type: 'application/json' });
+    const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (mobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: name }); mark(); toast('Yedek paylaşıldı. Drive ya da Dosyalar\'a kaydedebilirsin.'); return; }
+      catch (e) { if (e && e.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(file), a = document.createElement('a');
+    a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    mark(); toast('Yedek indirildi.');
+  };
+  $('#bkCopy', sheet).onclick = () => {
+    const text = json();
+    const ok = () => { mark(); toast('Yedek panoya kopyalandı. Bir nota ya da dosyaya yapıştırıp sakla.'); };
+    try { navigator.clipboard.writeText(text).then(ok, () => toast('Kopyalanamadı. "Yedeği indir"i dene.')); }
+    catch { toast('Kopyalanamadı. "Yedeği indir"i dene.'); }
+  };
+  $('#bkFile', sheet).onchange = e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      let d;
+      try { d = JSON.parse(r.result); } catch { toast('Bu dosya okunamadı. Uygulamadan alınmış bir .json yedeği seç.'); return; }
+      if (!d || d.app !== 'bugun-mutlaka' || !Array.isArray(d.tasks)) { toast('Bu dosya bir Bugün Mutlaka yedeği değil.'); return; }
+      const box = $('#bkConfirm', sheet); box.hidden = false;
+      box.innerHTML = `<span><b>${fmtLong(keyOf(new Date(d.exportedAt)))}</b> tarihli yedek: ${d.tasks.length} görev, ${(d.recurring || []).length} tekrar, ${(d.days || []).length} günlük geçmiş. Şu anki verilerin <b>bu yedekle değiştirilecek</b>.</span>
+        <div class="row-btns"><button type="button" class="btn primary" id="bkYes">Geri yükle</button><button type="button" class="btn" id="bkNo">Vazgeç</button></div>`;
+      $('#bkNo', sheet).onclick = () => { box.hidden = true; e.target.value = ''; };
+      $('#bkYes', sheet).onclick = () => { restoreBackup(d); box.hidden = true; sheet.close(); };
+    };
+    r.readAsText(f);
+  };
+}
+function restoreBackup(d) {
+  const idsOf = arr => new Set((arr || []).map(x => x.id).filter(Boolean));
+  for (const coll of ['tasks', 'recurring', 'days']) {
+    const keep = idsOf(d[coll]);
+    for (const id of [...store[coll].keys()]) if (!keep.has(id)) remove(coll, id);
+    for (const x of d[coll] || []) if (x && x.id) put(coll, x.id, x);
+  }
+  if (d.meta) putMeta({ ...d.meta, lastReview: today() });
+  toast('Yedek geri yüklendi.');
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.closest('#review') || b.closest('dialog')) return;
+  const x = b.dataset.id ? store.tasks.get(b.dataset.id) : null;
+  switch (b.dataset.act) {
+    case 'toggle': if (x) toggleDone(x); break;
+    case 'sub': if (x) {
+      const subs = (x.subs || []).map(s => s.id === b.dataset.sid ? { ...s, d: !s.d } : s);
+      put('tasks', x.id, { ...x, subs });
+      recordProgress(x, { ...x, subs });
+      if (subs.length && subs.every(s => s.d) && !x.done) toast('Tüm alt görevler bitti. Görevi de tamamlayabilirsin.');
+    } break;
+    case 'edit': if (x) openTaskSheet(x.id); break;
+    case 'newRule': openRuleSheet(null); break;
+    case 'openSettings': openSettings(); break;
+    case 'editRule': openRuleSheet(b.dataset.id); break;
+    case 'selDay': ui.selDay = b.dataset.k; saveUi(); renderHistory(); break;
+    case 'forceAdd': case 'toWeek': {
+      const w = $('#warn-today'); const p = w._pending; w.hidden = true; if (!p) break;
+      createTask({ ...p, section: b.dataset.act === 'toWeek' ? 'week' : 'today' });
+      if (b.dataset.act === 'toWeek') toast('Bu haftaya eklendi.');
+      break;
+    }
+  }
+});
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { ui.tab = b.dataset.tab; saveUi(); render(); }));
+$('#settingsBtn').innerHTML = ICON.gear;
+$('#settingsBtn').addEventListener('click', openSettings);
+$('#sync').addEventListener('click', () => { if (sync.enabled) sync.run(true); else openSettings(); });
+$('#toggleSomeday').addEventListener('click', () => { ui.somedayOpen = !ui.somedayOpen; saveUi(); renderToday(); });
+for (const s of ['today','week','someday']) $('#est-' + s).innerHTML = EST.map(([v, l]) => `<option value="${v}">${v ? l : 'Süre'}</option>`).join('');
+document.querySelectorAll('form.add').forEach(f => {
+  f.querySelector('button').innerHTML = ICON.plus;
+  f.addEventListener('submit', e => {
+    e.preventDefault();
+    const s = f.dataset.section, inp = f.querySelector('input'), sel = f.querySelector('select');
+    const title = inp.value.trim(); if (!title) return;
+    const p = { title, est: Number(sel.value) || 0 };
+    inp.value = ''; sel.value = '0';
+    if (s === 'today' && activeToday() >= (meta().todayLimit || 5)) {
+      const w = $('#warn-today'); w._pending = p; w.hidden = false;
+      w.innerHTML = `<span>"Bugün mutlaka" zaten ${activeToday()} görev. Bu gerçekten bugün mü olmalı?</span>
+        <div class="row-btns"><button class="btn small" data-act="toWeek">Bu haftaya ekle</button><button class="btn small" data-act="forceAdd">Yine de bugüne ekle</button></div>`;
+      return;
+    }
+    createTask({ ...p, section: s });
+  });
+});
+
+function initSortable() {
+  if (!window.Sortable) return;
+  document.querySelectorAll('ul.tasks[data-section]').forEach(list => {
+    Sortable.create(list, {
+      group: 'tasks', handle: '.grip', animation: 150, draggable: '.task',
+      onStart() { dragging = true; },
+      onEnd(evt) {
+        dragging = false;
+        const id = evt.item.dataset.id, x = store.tasks.get(id), to = evt.to.dataset.section;
+        if (x) {
+          const ids = [...evt.to.children].map(li => li.dataset.id);
+          const i = ids.indexOf(id);
+          const prev = store.tasks.get(ids[i-1]), next = store.tasks.get(ids[i+1]);
+          const order = prev && next ? ((prev.order||0) + (next.order||0)) / 2 : prev ? (prev.order||0) + 1 : next ? (next.order||0) - 1 : 1;
+          if (to !== x.section || order !== x.order) moveTask(x, to, order);
+          if (to === 'today' && x.section !== 'today' && activeToday() > (meta().todayLimit || 5)) toast('"Bugün mutlaka" sınırı aşıldı. Bir tanesi ertelenebilir mi?');
+        }
+        render();
+      },
+    });
+  });
+}
+
+let toastTimer;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2800); }
+
+setInterval(() => { if (today() !== currentDay) { currentDay = today(); maybeReview(); } scheduleRender(); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (sync.enabled && sync.tokenOk()) sync.run(false); maybeReview(); scheduleRender(); } });
+setInterval(() => { if (!document.hidden && sync.enabled && sync.tokenOk()) sync.run(false); }, 90000);
+window.addEventListener('online', () => { if (sync.enabled && sync.tokenOk()) sync.run(false); });
+
+async function boot() {
+  render(); initSortable();
+  backend = local;
+  setSync(sync.initialStatus());
+  try { navigator.storage?.persist?.(); } catch {}
+  if (sync.enabled) {
+    sync.loadGis().catch(() => {});
+    if (sync.tokenOk()) await Promise.race([sync.run(false), new Promise(r => setTimeout(r, 6000))]);
+  }
+  backend.start(onData);
+}
+boot();
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+})();
+</script>
+</body>
+</html>

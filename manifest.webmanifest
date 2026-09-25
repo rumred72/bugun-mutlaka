@@ -1,0 +1,17 @@
+{
+  "name": "Bugün Mutlaka",
+  "short_name": "Bugün",
+  "description": "Günlük yapılacaklar: bugün mutlaka, bu hafta, bir gün; kilitli görevler ve sabah planı.",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF9F5",
+  "theme_color": "#FAF9F5",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
