@@ -381,7 +381,7 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
       </section>
 
       <section class="sec" data-sec="someday">
-        <div class="sec-head"><span class="dot"></span><h2>Bir gün</h2><span class="count" id="count-someday"></span><span class="spacer"></span><button class="collapse" id="toggleSomeday"></button></div>
+        <div class="sec-head"><span class="dot"></span><h2>Bir gün</h2><span class="count" id="count-someday"></span></div>
         <div id="somedayBody" class="sec">
           <ul class="tasks" data-section="someday" id="list-someday"></ul>
           <form class="add" data-section="someday"><input id="add-someday" placeholder="Fikir, acelesi olmayan iş…" maxlength="200" autocomplete="off"><select id="est-someday" class="est-ui" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
@@ -615,6 +615,42 @@ const sync = (() => {
   };
 })();
 
+let pendingImport = null;
+function readImportHash() {
+  const m = location.hash.match(/^#import=([A-Za-z0-9_-]+)/); if (!m) return;
+  try {
+    const b64 = m[1].replace(/-/g, '+').replace(/_/g, '/');
+    const bin = atob(b64 + '==='.slice((b64.length + 3) % 4));
+    const data = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
+    if (data && Array.isArray(data.items)) pendingImport = data;
+  } catch (e) { console.warn(e); }
+  try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+}
+function showImport() {
+  const d = pendingImport; pendingImport = null; if (!d) return;
+  const sec = SECTIONS[d.s] ? d.s : 'week';
+  const exists = t => tasksArr().some(x => !x.done && x.section === sec && gslug(x.title) === gslug(t));
+  const items = d.items.map(([t, g]) => ({ t: String(t).trim(), g: g ? String(g).trim() : '' })).filter(x => x.t);
+  const fresh = items.filter(x => !exists(x.t)), dup = items.length - fresh.length;
+  const byG = new Map(); for (const x of fresh) { if (!byG.has(x.g)) byG.set(x.g, []); byG.get(x.g).push(x.t); }
+  sheetState = { kind: 'import' };
+  sheet.innerHTML = `<div class="sheet-body">
+    <div class="sheet-head"><h3>Görevleri içe aktar</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    <p style="margin:0">${fresh.length} görev <b>${SECTIONS[sec]}</b> bölümüne eklenecek${dup ? `, ${dup} tanesi zaten listende olduğu için atlanacak` : ''}. Gruplar yoksa açılır.</p>
+    <div style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow:auto">${[...byG.entries()].map(([g, ts]) => `<div><b>${g ? esc(g) : 'Grupsuz'}</b> <span class="muted">(${ts.length})</span><div class="muted" style="font-size:calc(13.5px * var(--fs,1))">${ts.map(esc).join(' · ')}</div></div>`).join('')}</div>
+    <div class="sheet-actions"><button type="button" class="btn" data-close2>Vazgeç</button><button type="button" class="btn primary" id="impGo" ${fresh.length ? '' : 'disabled'}>Ekle</button></div>
+  </div>`;
+  sheet.querySelector('[data-close]').onclick = () => sheet.close();
+  sheet.querySelector('[data-close2]').onclick = () => sheet.close();
+  $('#impGo', sheet).onclick = () => {
+    for (const x of fresh) {
+      const gid = x.g ? (groupByTag(x.g)?.id || createGroup(x.g)) : null;
+      const id = createTask({ title: x.t, section: sec }); if (gid) put('tasks', id, { ...store.tasks.get(id), groupId: gid });
+    }
+    sheet.close(); ui.tab = 'today'; saveUi(); render(); toast(`${fresh.length} görev eklendi.`);
+  };
+  sheet.showModal();
+}
 function onData(kind, payload) {
   if (kind === 'meta') store.meta = payload;
   else store[kind] = new Map(payload.map(([id, d]) => [id, { ...d, id }]));
@@ -624,6 +660,7 @@ function onData(kind, payload) {
     if (!store.meta) putMeta({ lastReview: today() });
   }
   if (ready) maybeReview();
+  if (ready && pendingImport && !review) setTimeout(showImport, 50);
   scheduleRender();
 }
 
@@ -956,6 +993,7 @@ function finishReview() {
   $('#review').hidden = true;
   document.body.style.overflow = '';
   render();
+  if (pendingImport) setTimeout(showImport, 50);
 }
 function renderReview() {
   const el = $('#review'); el.hidden = false; document.body.style.overflow = 'hidden';
@@ -1094,8 +1132,6 @@ function renderToday() {
       if (!open.length && !done.length) list.innerHTML = '';
     } else cnt.textContent = open.length ? String(open.length) : '';
   }
-  $('#toggleSomeday').textContent = ui.somedayOpen ? 'Gizle' : 'Göster';
-  $('#somedayBody').hidden = !ui.somedayOpen;
 }
 function renderRecurring() {
   const rules = [...store.recurring.values()].sort((a, b) => (a.created||0) - (b.created||0));
@@ -1697,7 +1733,7 @@ document.addEventListener('click', e => {
     case 'newRule': openRuleSheet(null); break;
     case 'openSettings': openSettings(); break;
     case 'gToggle': ui.gClosed = ui.gClosed || {}; ui.gClosed[b.dataset.k] = !ui.gClosed[b.dataset.k]; saveUi(); renderToday(); break;
-    case 'gAdd': { const g = store.groups.get(b.dataset.gid); const inp = $('#add-' + b.dataset.sec); if (g && inp) { if (b.dataset.sec === 'someday' && !ui.somedayOpen) { ui.somedayOpen = true; saveUi(); renderToday(); } inp.value = '#' + gslug(g.name) + ' '; inp.focus(); } break; }
+    case 'gAdd': { const g = store.groups.get(b.dataset.gid); const inp = $('#add-' + b.dataset.sec); if (g && inp) { inp.value = '#' + gslug(g.name) + ' '; inp.focus(); } break; }
     case 'newProject': openProjectSheet(null); break;
     case 'editProject': openProjectSheet(b.dataset.id); break;
     case 'togglePDone': ui.pDone = ui.pDone || {}; ui.pDone[b.dataset.id] = !ui.pDone[b.dataset.id]; saveUi(); renderProjects(); break;
@@ -1712,10 +1748,21 @@ document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click
 $('#settingsBtn').innerHTML = ICON.gear;
 $('#settingsBtn').addEventListener('click', openSettings);
 $('#sync').addEventListener('click', () => { if (sync.enabled) sync.run(true); else openSettings(); });
-$('#toggleSomeday').addEventListener('click', () => { ui.somedayOpen = !ui.somedayOpen; saveUi(); renderToday(); });
 for (const s of ['today','week','someday']) $('#est-' + s).innerHTML = EST.map(([v, l]) => `<option value="${v}">${v ? l : 'Süre'}</option>`).join('');
+function addLines(text, section) {
+  const lines = String(text).split(/\r?\n/).map(l => l.replace(/^\s*([-*•]|\d+[.)]|\[ ?\])\s*/, '').trim()).filter(Boolean);
+  for (const l of lines) { const tg = parseTagged(l); const id = createTask({ title: tg.title, section }); if (tg.groupId) put('tasks', id, { ...store.tasks.get(id), groupId: tg.groupId }); }
+  return lines.length;
+}
 document.querySelectorAll('form.add').forEach(f => {
   f.querySelector('button').innerHTML = ICON.plus;
+  f.querySelector('input').addEventListener('paste', e => {
+    const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
+    if (!/\n/.test(text.trim())) return;
+    e.preventDefault();
+    const n = addLines(text, f.dataset.section);
+    toast(`${n} görev eklendi.`);
+  });
   f.addEventListener('submit', e => {
     e.preventDefault();
     const s = f.dataset.section, inp = f.querySelector('input'), sel = f.querySelector('select');
@@ -1764,6 +1811,7 @@ async function boot() {
   backend = local;
   setSync(sync.initialStatus());
   try { navigator.storage?.persist?.(); } catch {}
+  readImportHash();
   const ret = sync.handleReturn();
   setSync(sync.initialStatus());
   if (ret === 'ok') toast("Drive'a bağlandı, eşitleniyor…");
