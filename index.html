@@ -1141,7 +1141,7 @@ function reportHtml() {
       <div class="rep-sec"><h3>Projeler</h3>${r.projects.length ? `<div style="display:flex;flex-direction:column;gap:8px">${projList}</div>` : '<p class="none">Aktif proje yok</p>'}</div>
     </div>
     ${note}
-    <div class="rep-actions no-print"><button type="button" class="btn primary" data-act="repShare">Paylaş / kopyala</button><button type="button" class="btn" data-act="repPrint">PDF / Yazdır</button>
+    <div class="rep-actions no-print"><button type="button" class="btn primary" data-act="repImage">Görsel olarak paylaş</button><button type="button" class="btn" data-act="repShare">Metni kopyala</button>
       ${name ? '' : '<span class="muted" style="align-self:center;font-size:calc(13px * var(--fs,1))">İpucu: Ayarlar\'dan rapora adını ekleyebilirsin.</span>'}</div>
   </section>`;
 }
@@ -1158,6 +1158,42 @@ function reportText() {
   const notes = week ? r.notes.map(x => `${fmtDow(x.k)}: ${x.n}`) : (dayDoc(r.from).note ? [dayDoc(r.from).note] : []);
   if (notes.length) { L.push('', '📝 NOT'); L.push(...notes); }
   return L.join('\n');
+}
+let h2cLoad = null;
+const loadH2C = () => h2cLoad || (h2cLoad = new Promise((res, rej) => {
+  if (window.html2canvas) return res(window.html2canvas);
+  const el = document.createElement('script'); el.src = 'vendor/html2canvas.min.js';
+  el.onload = () => res(window.html2canvas); el.onerror = () => { h2cLoad = null; rej(new Error('h2c')); };
+  document.head.append(el);
+}));
+async function shareReportImage() {
+  toast('Görsel hazırlanıyor…');
+  let blob;
+  try {
+    const html2canvas = await loadH2C();
+    const canvas = await html2canvas($('#reportCard'), {
+      scale: 2, backgroundColor: '#FFFFFF', windowWidth: 900, logging: false,
+      ignoreElements: el => el.classList && el.classList.contains('no-print'),
+      onclone: doc => {
+        doc.documentElement.dataset.theme = 'light';
+        const app = doc.querySelector('.app'); if (app) app.style.maxWidth = 'none';
+        const c = doc.getElementById('reportCard');
+        Object.assign(c.style, { width: '760px', boxShadow: 'none', borderRadius: '0', padding: '28px', background: '#FFFFFF' });
+        doc.querySelectorAll('.print-only').forEach(e => { e.style.display = 'block'; });
+      },
+    });
+    blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+  } catch (e) { console.warn(e); toast('Görsel oluşturulamadı. "Metni kopyala"yı dene.'); return; }
+  const [from] = reportRange();
+  const name = `rapor-${ui.repMode === 'week' ? 'haftalik-' : ''}${from}.png`;
+  const file = new File([blob], name, { type: 'image/png' });
+  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast('Görsel indirildi. WhatsApp\'a ekleyip gönderebilirsin.');
 }
 async function shareReport() {
   const text = reportText();
@@ -1549,7 +1585,7 @@ document.addEventListener('click', e => {
     case 'selDay': ui.selDay = b.dataset.k; saveUi(); renderHistory(); break;
     case 'repPrev': case 'repNext': { const [from] = reportRange(); const step = (ui.repMode === 'week' ? 7 : 1) * (b.dataset.act === 'repPrev' ? -1 : 1); const nd = addDays(from, step); ui.repDate = nd > today() ? today() : nd; saveUi(); renderHistory(); break; }
     case 'repShare': shareReport(); break;
-    case 'repPrint': window.print(); break;
+    case 'repImage': shareReportImage(); break;
   }
 });
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { ui.tab = b.dataset.tab; saveUi(); render(); }));

@@ -45,3 +45,4 @@ dokunman yeterli. Bağlantı olmasa da uygulama çalışır, değişiklikler son
 - `sw.js` – internetsiz çalışma (önbellek)
 - `manifest.webmanifest`, `icons/` – telefona kurulum
 - `vendor/Sortable.min.js` – sürükle-bırak (SortableJS 1.15.2, MIT)
+- `vendor/html2canvas.min.js` – raporu görsele çevirme (html2canvas 1.4.1, MIT)
