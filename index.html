@@ -52,6 +52,22 @@ svg{width:18px;height:18px;flex:none}
 .app{max-width:640px;margin:0 auto;padding-block:8px 80px}
 .app.wide{max-width:1240px}
 .no-est .est-ui{display:none!important}
+/* groups */
+.ghead{list-style:none;display:flex;align-items:center;gap:8px;padding:10px 4px 2px;font-size:calc(12px * var(--fs,1));letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--muted);user-select:none}
+.ghead:first-child{padding-top:2px}
+.ghead .gt{border:0;background:none;padding:2px 0;display:flex;align-items:center;gap:7px;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer}
+.ghead .gt i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.ghead .gc{font-weight:600;opacity:.8}
+.ghead .gadd{margin-left:auto;border:0;background:none;color:var(--muted);width:28px;height:24px;border-radius:6px;display:grid;place-items:center;padding:0}
+.ghead .gadd:hover{background:var(--surface-2);color:var(--ink)}
+.ghead .gadd svg{width:15px;height:15px}
+.gchip{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:1px 7px;background:var(--surface-2);font-size:calc(12px * var(--fs,1))}
+.gchip i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.grow{display:flex;align-items:center;gap:8px}
+.grow input{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;color:var(--ink)}
+.grow .sw{width:26px;height:26px;border-radius:7px;border:0;flex:none;padding:0}
+.grow .icon-btn{width:30px;height:30px}
+
 /* report */
 .report{background:var(--surface);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
 .rep-controls{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between}
@@ -441,7 +457,7 @@ function applyAppearance() {
 applyAppearance();
 
 /* ---------- store & backends ---------- */
-const store = { tasks:new Map(), recurring:new Map(), days:new Map(), projects:new Map(), meta:null };
+const store = { tasks:new Map(), recurring:new Map(), days:new Map(), projects:new Map(), groups:new Map(), meta:null };
 const loaded = new Set();
 let backend = null, ready = false, currentDay = today();
 
@@ -453,7 +469,7 @@ const local = (() => {
   const persist = () => { try { localStorage.setItem(LS_DATA, JSON.stringify(st)); } catch { toast('Cihaz depolaması yazılamadı. Hemen yedek al.'); } };
   const emit = () => {
     if (!cb) return;
-    for (const c of ['tasks','recurring','days','projects'])
+    for (const c of ['tasks','recurring','days','projects','groups'])
       cb(c, Object.entries(st.docs).filter(([k]) => k.startsWith(c + '/')).map(([k, v]) => [k.slice(c.length + 1), v]));
     cb('meta', st.docs['meta/state'] || null);
   };
@@ -603,7 +619,7 @@ function onData(kind, payload) {
   if (kind === 'meta') store.meta = payload;
   else store[kind] = new Map(payload.map(([id, d]) => [id, { ...d, id }]));
   loaded.add(kind);
-  if (!ready && ['tasks','recurring','days','projects','meta'].every(k => loaded.has(k))) {
+  if (!ready && ['tasks','recurring','days','projects','groups','meta'].every(k => loaded.has(k))) {
     ready = true;
     if (!store.meta) putMeta({ lastReview: today() });
   }
@@ -683,7 +699,7 @@ function toggleDone(x) {
     put('tasks', x.id, { ...x, done: true, doneOn: t, doneAt: Date.now() });
     patchDay(t, d => {
       d.done = d.done.filter(e => e.id !== x.id);
-      d.done.push({ id: x.id, t: x.title, s: x.section, l: !!x.locked, e: x.est || 0, pj: x.projectId || null });
+      d.done.push({ id: x.id, t: x.title, s: x.section, l: !!x.locked, e: x.est || 0, pj: x.projectId || null, g: x.groupId || null });
       if (x.locked && !d.lockedDoneIds.includes(x.id)) d.lockedDoneIds.push(x.id);
     });
   } else {
@@ -709,6 +725,41 @@ function recordProgress(before, after) {
   });
 }
 const activeToday = () => tasksArr().filter(x => x.section === 'today' && !x.done).length;
+
+/* ---------- groups ---------- */
+const groupsSorted = () => [...store.groups.values()].sort((a, b) => (a.order || 0) - (b.order || 0));
+const gslug = v => String(v || '').replace(/[İIı]/g, 'i').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
+const groupingOn = () => ui.grouped !== false && store.groups.size > 0;
+function groupByTag(tag) {
+  const t = gslug(tag); if (!t) return null;
+  const gs = groupsSorted();
+  return gs.find(g => gslug(g.name) === t) || gs.find(g => gslug(g.name).startsWith(t)) || null;
+}
+function createGroup(name) {
+  const id = newId(), clean = name.trim().slice(0, 40);
+  put('groups', id, { name: clean, color: PCOLORS[store.groups.size % PCOLORS.length], order: store.groups.size, created: Date.now() });
+  return id;
+}
+// "#instagram ürün afişi" → grup: Instagram, başlık: "ürün afişi"
+function parseTagged(title) {
+  const m = title.match(/(^|\s)#([\p{L}\p{N}_-]+)/u);
+  if (!m) return { title, groupId: null };
+  const g = groupByTag(m[2]) || { id: createGroup(m[2]) };
+  const rest = (title.slice(0, m.index) + title.slice(m.index + m[0].length)).replace(/\s+/g, ' ').trim();
+  return { title: rest || m[2], groupId: g.id };
+}
+const groupChip = gid => { const g = gid && store.groups.get(gid); return g ? `<span class="gchip"><i style="background:${g.color}"></i>${esc(g.name)}</span>` : ''; };
+function groupedHtml(tasks, sec) {
+  if (!groupingOn()) return tasks.map(x => taskRow(x)).join('');
+  ui.gClosed = ui.gClosed || {};
+  const by = new Map(); for (const x of tasks) { const k = x.groupId && store.groups.has(x.groupId) ? x.groupId : ''; if (!by.has(k)) by.set(k, []); by.get(k).push(x); }
+  const heads = [...groupsSorted().filter(g => by.has(g.id)).map(g => [g.id, g.name, g.color]), ...(by.has('') ? [['', 'Grupsuz', 'var(--line)']] : [])];
+  return heads.map(([gid, name, color]) => {
+    const key = sec + ':' + gid, closed = !!ui.gClosed[key], list = by.get(gid);
+    return `<li class="ghead" data-gid="${gid}"><button class="gt" data-act="gToggle" data-k="${key}" aria-expanded="${!closed}"><i style="background:${color}"></i>${esc(name)} <span class="gc">${list.length}</span> ${closed ? '▸' : '▾'}</button>
+      ${gid ? `<button class="gadd" data-act="gAdd" data-sec="${sec}" data-gid="${gid}" aria-label="${esc(name)} grubuna ekle">${ICON.plus}</button>` : ''}</li>${closed ? '' : list.map(x => taskRow(x)).join('')}`;
+  }).join('');
+}
 
 /* ---------- projects ---------- */
 const activeProjects = () => [...store.projects.values()].filter(p => !p.archived).sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -868,7 +919,7 @@ function startReview(t) {
   const missedBy = {}, missedL = {};
   for (const x of tasksArr()) if (!x.done && x.section === 'today' && (x.day || t) < t) {
     missedBy[x.day] = (missedBy[x.day] || 0) + 1;
-    (missedL[x.day] = missedL[x.day] || []).push({ id: x.id, t: x.title, p: effProg(x), pj: x.projectId || null });
+    (missedL[x.day] = missedL[x.day] || []).push({ id: x.id, t: x.title, p: effProg(x), pj: x.projectId || null, g: x.groupId || null });
   }
   for (const [d, n] of Object.entries(missedBy)) { const doc = dayDoc(d); if (doc.missed !== n || !doc.missedList) patchDay(d, dd => { dd.missed = n; dd.missedList = missedL[d]; }); }
   for (const x of tasksArr()) if (x.done && x.section !== 'project' && (x.doneOn || t) < t) remove('tasks', x.id);
@@ -997,9 +1048,9 @@ function taskRow(x, { drag = true } = {}) {
     <button class="check" data-act="toggle" data-id="${x.id}" aria-label="${x.done ? 'Tamamlanmadı olarak işaretle' : 'Tamamla'}" aria-pressed="${!!x.done}">${ICON.check}</button>
     <div class="col"><button class="task-body" data-act="edit" data-id="${x.id}">
       <span class="title">${x.locked && !x.done ? `<span class="pin-mark" aria-label="Sabitli">${ICON.pin}</span>` : ''}${esc(x.title)}</span>
-      ${(x.est || p || x.recurId || (x.subs || []).length || effProg(x) || (x.projectId && x.section !== 'project')) && !x.done ? `<span class="meta">
+      ${(x.est || p || x.recurId || (x.subs || []).length || effProg(x) || (x.projectId && x.section !== 'project') || (x.groupId && store.groups.has(x.groupId) && (!groupingOn() || x.section === 'project'))) && !x.done ? `<span class="meta">
         ${progChip(x)}${x.est ? `<span class="chip est-ui">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}
-        ${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}${projChip(x)}
+        ${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}${projChip(x)}${!groupingOn() || x.section === 'project' ? groupChip(x.groupId) : ''}
         ${p ? `<span class="chip${p >= 3 ? ' warn' : ''}">${p} kez ertelendi</span>` : ''}
       </span>` : ''}
       ${progBar(x)}
@@ -1035,7 +1086,7 @@ function renderToday() {
     const open = secTasks.filter(x => !x.done).sort((a, b) => (b.locked ? 1 : 0) - (a.locked ? 1 : 0) || byOrder(a, b));
     const done = secTasks.filter(x => x.done).sort((a, b) => (a.doneAt||0) - (b.doneAt||0));
     const list = $('#list-' + s);
-    list.innerHTML = open.map(x => taskRow(x)).join('');
+    list.innerHTML = groupedHtml(open, s);
     $('#done-' + s).innerHTML = done.map(x => taskRow(x, { drag: false })).join('');
     const cnt = $('#count-' + s);
     if (s === 'today') {
@@ -1072,20 +1123,21 @@ function buildReport() {
   for (let k = from; k <= to && k <= t; k = addDays(k, 1)) days.push(k);
   const onlyProj = ui.repScope === 'projects';
   const pjOf = id => store.tasks.get(id)?.projectId || null;
+  const gOf = id => store.tasks.get(id)?.groupId || null;
   const ok = pj => !onlyProj || !!pj;
   const done = [], doneIds = new Set();
-  for (const k of days) for (const e of dayDoc(k).done) { const pj = e.pj !== undefined ? e.pj : pjOf(e.id); if (!ok(pj) || doneIds.has(e.id)) continue; done.push({ ...e, pj, day: k }); doneIds.add(e.id); }
+  for (const k of days) for (const e of dayDoc(k).done) { const pj = e.pj !== undefined ? e.pj : pjOf(e.id); if (!ok(pj) || doneIds.has(e.id)) continue; done.push({ ...e, pj, g: e.g !== undefined ? e.g : gOf(e.id), day: k }); doneIds.add(e.id); }
   const prog = new Map();
   for (const k of days) for (const e of dayDoc(k).prog || []) {
     if (doneIds.has(e.id)) continue; const pj = pjOf(e.id); if (!ok(pj)) continue;
-    const c = prog.get(e.id); prog.set(e.id, c ? { ...c, b: e.b, t: e.t } : { id: e.id, t: e.t, a: e.a, b: e.b, pj });
+    const c = prog.get(e.id); prog.set(e.id, c ? { ...c, b: e.b, t: e.t } : { id: e.id, t: e.t, a: e.a, b: e.b, pj, g: gOf(e.id) });
   }
   const missed = new Map();
   for (const k of days) { if (k === t) continue; for (const e of dayDoc(k).missedList || []) if (!doneIds.has(e.id) && ok(e.pj)) missed.set(e.id, e); }
-  if (days.includes(t)) for (const x of tasksArr()) if (x.section === 'today' && !x.done && ok(x.projectId || null)) missed.set(x.id, { id: x.id, t: x.title, p: effProg(x), pj: x.projectId || null });
+  if (days.includes(t)) for (const x of tasksArr()) if (x.section === 'today' && !x.done && ok(x.projectId || null)) missed.set(x.id, { id: x.id, t: x.title, p: effProg(x), pj: x.projectId || null, g: x.groupId || null });
   const inProg = [];
   for (const e of prog.values()) if (e.b > 0) inProg.push(e);
-  for (const e of missed.values()) if (!prog.has(e.id) && e.p > 0) inProg.push({ id: e.id, t: e.t, a: null, b: e.p, pj: e.pj });
+  for (const e of missed.values()) if (!prog.has(e.id) && e.p > 0) inProg.push({ id: e.id, t: e.t, a: null, b: e.p, pj: e.pj, g: e.g });
   const notDone = [...missed.values()].filter(e => !prog.has(e.id) && !(e.p > 0));
   let missedCount = 0; for (const k of days) if (k !== t) missedCount += dayDoc(k).missed || 0;
   const projects = [...store.projects.values()].filter(p => !p.archived).sort((a, b) => (a.order || 0) - (b.order || 0)).map(pr => {
@@ -1106,14 +1158,15 @@ function reportTitle(r) {
     ? `${fmtLong(r.from)} – ${parseKey(r.to).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`
     : parseKey(r.from).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
 }
+function doneByGroup(done) {
+  const m = new Map(); for (const e of done) { const k = e.g && store.groups.has(e.g) ? e.g : ''; if (!m.has(k)) m.set(k, []); m.get(k).push(e); }
+  return [...groupsSorted().filter(g => m.has(g.id)).map(g => [g, m.get(g.id)]), ...(m.has('') ? [[null, m.get('')]] : [])];
+}
 function reportHtml() {
   const r = buildReport(), week = ui.repMode === 'week', name = (meta().reportName || '').trim();
-  const doneList = week
-    ? (() => { const g = new Map(); for (const e of r.done) { const key = e.pj && store.projects.has(e.pj) ? e.pj : ''; if (!g.has(key)) g.set(key, []); g.get(key).push(e); }
-        return [...g.entries()].sort((a, b) => (a[0] ? 0 : 1) - (b[0] ? 0 : 1)).map(([pj, es]) => `<li><b>${pj ? esc(pname(pj)) : 'Diğer'} (${es.length}):</b> ${es.map(e => esc(e.t)).join(', ')}</li>`).join(''); })()
-    : r.done.map(e => `<li>${esc(e.t)} ${repChip(e.pj)}${e.e ? `<span class="r est-ui">${fmtMin(e.e)}</span>` : ''}</li>`).join('');
-  const progList = r.inProg.map(e => `<li>${esc(e.t)} ${repChip(e.pj)}<span class="r">%${e.b}${e.a != null && e.b !== e.a ? ` (${signed(e.b - e.a)})` : ''}</span></li>`).join('');
-  const notList = r.notDone.map(e => `<li>${esc(e.t)} ${repChip(e.pj)}</li>`).join('');
+  const doneList = doneByGroup(r.done).map(([g, es]) => `<li><span><b style="${g ? `color:${g.color}` : ''}">${g ? esc(g.name) : 'Grupsuz'} (${es.length}):</b> ${es.map(e => esc(e.t)).join(', ')}</span></li>`).join('');
+  const progList = r.inProg.map(e => `<li>${esc(e.t)} ${groupChip(e.g)}${repChip(e.pj)}<span class="r">%${e.b}${e.a != null && e.b !== e.a ? ` (${signed(e.b - e.a)})` : ''}</span></li>`).join('');
+  const notList = r.notDone.map(e => `<li>${esc(e.t)} ${groupChip(e.g)}${repChip(e.pj)}</li>`).join('');
   const projList = r.projects.map(x => `<div class="rep-proj"><span>${esc(x.pr.name)}</span><div class="pbar"><i style="width:${x.cur}%;background:${x.pr.color}"></i></div><span class="r">%${x.cur}${x.delta != null ? ` <small>(${signed(x.delta)})</small>` : ''}</span></div>`).join('');
   const maxN = Math.max(1, ...r.perDay.map(d => d.n || 0));
   const note = !week ? `<div class="rep-note"><h3 style="margin:0 0 6px;font-size:calc(13px * var(--fs,1));letter-spacing:.06em;text-transform:uppercase">Not</h3>
@@ -1151,7 +1204,7 @@ function reportText() {
   const L = [`${week ? 'HAFTALIK RAPOR' : 'GÜNLÜK RAPOR'} · ${reportTitle(r)}`];
   if (name) L.push(`Hazırlayan: ${name}`);
   L.push('', `Özet: ${r.done.length} tamamlandı · ${r.inProg.length} devam ediyor · ${r.notDone.length} yapılmadı${r.est ? ` · ${fmtMin(r.est)} iş` : ''}`);
-  L.push('', `✅ TAMAMLANANLAR (${r.done.length})`); for (const e of r.done) L.push(`• ${e.t}${tag(e.pj)}${week ? ` (${fmtDow(e.day)})` : ''}`); if (!r.done.length) L.push('• —');
+  L.push('', `✅ TAMAMLANANLAR (${r.done.length})`); for (const [g, es] of doneByGroup(r.done)) { L.push(`${g ? g.name : 'Grupsuz'} (${es.length}):`); for (const e of es) L.push(`  • ${e.t}${tag(e.pj)}${week ? ` (${fmtDow(e.day)})` : ''}`); } if (!r.done.length) L.push('• —');
   L.push('', `🔶 DEVAM EDEN / YARIDA KALAN (${r.inProg.length})`); for (const e of r.inProg) L.push(`• ${e.t}${tag(e.pj)} — %${e.b}${e.a != null && e.b !== e.a ? ` (${e.b - e.a > 0 ? '+' : ''}${e.b - e.a})` : ''}`); if (!r.inProg.length) L.push('• —');
   L.push('', `⭕ YAPILMAYANLAR (${r.notDone.length})`); for (const e of r.notDone) L.push(`• ${e.t}${tag(e.pj)}`); if (!r.notDone.length) L.push('• —');
   if (r.projects.length) { L.push('', '📁 PROJELER'); for (const x of r.projects) L.push(`• ${x.pr.name}: %${x.cur}${x.delta != null ? ` (${x.delta > 0 ? '+' : ''}${x.delta})` : ''}`); }
@@ -1296,6 +1349,8 @@ function openTaskSheet(id) {
     ${!x.done ? `<div class="field" id="f-prog-wrap"><span>İlerleme</span>
       <div class="progress-field" id="f-prog-manual" ${(x.subs || []).length ? 'hidden' : ''}><input type="range" id="f-prog" min="0" max="100" step="10" value="${x.prog || 0}" aria-label="İlerleme yüzdesi"><output id="f-prog-out">%${x.prog || 0}</output></div>
       <span id="f-prog-auto" class="muted" ${(x.subs || []).length ? '' : 'hidden'}>Alt görevlerden hesaplanıyor.</span></div>` : ''}
+    ${x.section !== 'project' || store.groups.size ? `<div class="field"><span>Grup</span><div class="chips" id="f-grp"><button type="button" data-grp="" aria-pressed="${!x.groupId || !store.groups.has(x.groupId)}">Yok</button>${groupsSorted().map(g => `<button type="button" data-grp="${g.id}" aria-pressed="${x.groupId === g.id}"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${g.color};margin-right:6px"></span>${esc(g.name)}</button>`).join('')}<button type="button" data-grpnew>+ Yeni grup</button></div>
+      <div class="grow" id="f-grpnewrow" hidden><input id="f-grpname" maxlength="40" placeholder="Grup adı, örn. Instagram"><button type="button" class="btn small" id="f-grpadd">Ekle</button></div></div>` : ''}
     <div class="field"><span>Alt görevler</span><div id="f-subs" class="sec"></div></div>
     <label class="field"><span>Not</span><textarea id="f-note" rows="2" maxlength="2000">${esc(x.note || '')}</textarea></label>
     <div class="field est-ui"><span>Süre tahmini</span><div class="chips" id="f-est">${estChips(x.est)}</div></div>
@@ -1314,6 +1369,23 @@ function openTaskSheet(id) {
       <button type="submit" class="btn primary">Kaydet</button></div>
   </form>`;
   subEditor($('#f-subs', sheet), true);
+  sheetState.groupId = x.groupId && store.groups.has(x.groupId) ? x.groupId : null;
+  const fg = $('#f-grp', sheet);
+  if (fg) {
+    fg.querySelectorAll('[data-grp]').forEach(b => b.addEventListener('click', () => { fg.querySelectorAll('[data-grp]').forEach(o => o.setAttribute('aria-pressed', String(o === b))); sheetState.groupId = b.dataset.grp || null; }));
+    fg.querySelector('[data-grpnew]').onclick = () => { $('#f-grpnewrow', sheet).hidden = false; $('#f-grpname', sheet).focus(); };
+    const addNew = () => {
+      const v = $('#f-grpname', sheet).value.trim(); if (!v) return;
+      const gid = createGroup(v); sheetState.groupId = gid;
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.grp = gid; b.textContent = store.groups.get(gid).name;
+      fg.insertBefore(b, fg.querySelector('[data-grpnew]'));
+      b.addEventListener('click', () => { fg.querySelectorAll('[data-grp]').forEach(o => o.setAttribute('aria-pressed', String(o === b))); sheetState.groupId = gid; });
+      fg.querySelectorAll('[data-grp]').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+      $('#f-grpname', sheet).value = ''; $('#f-grpnewrow', sheet).hidden = true;
+    };
+    $('#f-grpadd', sheet).onclick = addNew;
+    $('#f-grpname', sheet).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addNew(); } });
+  }
   const pr = $('#f-prog', sheet);
   if (pr) pr.addEventListener('input', () => { sheetState.prog = Number(pr.value); $('#f-prog-out', sheet).textContent = '%' + pr.value; });
   $('#f-subs', sheet).addEventListener('click', () => setTimeout(() => {
@@ -1343,7 +1415,7 @@ function openTaskSheet(id) {
 }
 function saveTaskFields(x) {
   const title = $('#f-title', sheet).value.trim() || x.title;
-  const next = { ...x, title, note: $('#f-note', sheet).value.trim(), est: sheetState.est, subs: cleanSubs(), prog: sheetState.prog };
+  const next = { ...x, title, note: $('#f-note', sheet).value.trim(), est: sheetState.est, subs: cleanSubs(), prog: sheetState.prog, groupId: $('#f-grp', sheet) ? sheetState.groupId : (x.groupId || null) };
   const fp = $('#f-proj', sheet);
   if (fp && x.section === 'project' && fp.value !== x.projectId) Object.assign(next, { projectId: fp.value, order: endOrder('project') });
   if (x.section !== 'project' && sheetState.section !== x.section) {
@@ -1410,6 +1482,7 @@ function openSettings() {
   sheetState = { kind:'settings' };
   sheet.innerHTML = `<div class="sheet-body">
     <div class="sheet-head"><h3>Ayarlar</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    <div class="backup" id="grpBox"></div>
     <div class="backup"><h4>Rapor</h4>
       <label class="field"><span>Raporda görünecek adın</span><input id="repName" value="${esc(m.reportName || '')}" maxlength="60" placeholder="Örn. Cihat Yılmaz" style="border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;color:var(--ink)"></label></div>
     <div class="backup" id="apBox">
@@ -1435,6 +1508,7 @@ function openSettings() {
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
   wireBackup();
   drawDrive();
+  drawGroups();
   $('#repName', sheet).addEventListener('change', e => putMeta({ reportName: e.target.value.trim() }));
   const setUi = (k, v) => { ui[k] = v; saveUi(); applyAppearance(); };
   const fs = $('#apFs', sheet);
@@ -1449,6 +1523,50 @@ function openSettings() {
     saveUi(); applyAppearance(); sheet.close(); openSettings(); toast('Görünüm varsayılana döndü.');
   };
   sheet.showModal();
+}
+
+/* ---------- groups settings ---------- */
+function drawGroups() {
+  const box = $('#grpBox', sheet); if (!box) return;
+  const gs = groupsSorted();
+  const count = gid => tasksArr().filter(x => x.groupId === gid && !x.done).length;
+  box.innerHTML = `<h4>Gruplar</h4>
+    <p>Günlük listelerde görevleri başlıklar altında toplar (Instagram, Sipariş, Atölye işleri…). Görev eklerken başına <b>#grupadı</b> yazarsan o gruba düşer.</p>
+    <div class="field"><span>Gruplama</span><div class="seg" id="gOnOff"><button type="button" data-gon="on" aria-pressed="${ui.grouped !== false}">Açık</button><button type="button" data-gon="off" aria-pressed="${ui.grouped === false}">Kapalı</button></div></div>
+    <div style="display:flex;flex-direction:column;gap:8px">${gs.map((g, i) => `<div class="grow" data-gid="${g.id}">
+      <button type="button" class="sw" data-gcolor="${g.id}" style="background:${g.color}" aria-label="Rengi değiştir" title="Rengi değiştir"></button>
+      <input value="${esc(g.name)}" data-gname="${g.id}" maxlength="40" aria-label="Grup adı">
+      <span class="muted" style="font-size:calc(12px * var(--fs,1));white-space:nowrap">${count(g.id)} görev</span>
+      <button type="button" class="icon-btn" data-gmv="${g.id}" data-d="-1" aria-label="Yukarı" ${i === 0 ? 'disabled' : ''}>↑</button>
+      <button type="button" class="icon-btn" data-gmv="${g.id}" data-d="1" aria-label="Aşağı" ${i === gs.length - 1 ? 'disabled' : ''}>↓</button>
+      <button type="button" class="icon-btn" data-gdel="${g.id}" aria-label="Grubu sil">${ICON.x}</button></div>`).join('') || '<p class="muted" style="margin:0">Henüz grup yok.</p>'}</div>
+    <div class="grow"><input id="gNew" maxlength="40" placeholder="Yeni grup adı"><button type="button" class="btn small" id="gNewBtn">Ekle</button></div>`;
+  wirePress($('#gOnOff', box), 'gon', v => { ui.grouped = v === 'on'; saveUi(); scheduleRender(); });
+  box.querySelectorAll('[data-gname]').forEach(inp => inp.addEventListener('change', () => {
+    const g = store.groups.get(inp.dataset.gname), v = inp.value.trim();
+    if (!g) return; if (!v) { inp.value = g.name; return; }
+    put('groups', g.id, { ...g, name: v }); toast('Grup adı güncellendi.');
+  }));
+  box.querySelectorAll('[data-gcolor]').forEach(b => b.onclick = () => {
+    const g = store.groups.get(b.dataset.gcolor); const c = PCOLORS[(PCOLORS.indexOf(g.color) + 1) % PCOLORS.length];
+    put('groups', g.id, { ...g, color: c }); b.style.background = c;
+  });
+  box.querySelectorAll('[data-gmv]').forEach(b => b.onclick = () => {
+    const list = groupsSorted(), i = list.findIndex(g => g.id === b.dataset.gmv), j = i + Number(b.dataset.d);
+    if (j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]];
+    list.forEach((g, k) => { if ((g.order || 0) !== k) put('groups', g.id, { ...g, order: k }); });
+    drawGroups();
+  });
+  box.querySelectorAll('[data-gdel]').forEach(b => b.onclick = () => {
+    const gid = b.dataset.gdel, g = store.groups.get(gid);
+    if (!b.dataset.armed) { b.dataset.armed = '1'; b.innerHTML = 'Sil?'; b.style.width = 'auto'; b.style.color = 'var(--today)'; b.style.fontWeight = '700'; return; }
+    for (const x of tasksArr()) if (x.groupId === gid) put('tasks', x.id, { ...x, groupId: null });
+    remove('groups', gid); drawGroups(); toast(`"${g.name}" grubu silindi. Görevleri grupsuz kaldı.`);
+  });
+  const addG = () => { const v = $('#gNew', box).value.trim(); if (!v) return; createGroup(v); drawGroups(); setTimeout(() => $('#gNew', sheet)?.focus(), 0); };
+  $('#gNewBtn', box).onclick = addG;
+  $('#gNew', box).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addG(); } });
 }
 
 /* ---------- Google Drive settings ---------- */
@@ -1504,7 +1622,7 @@ function buildBackup() {
   const st = local.snapshot();
   const arr = c => Object.entries(st.docs).filter(([k]) => k.startsWith(c + '/')).map(([k, v]) => ({ ...v, id: k.slice(c.length + 1) }));
   return JSON.stringify({ app: 'bugun-mutlaka', version: 1, exportedAt: new Date().toISOString(),
-    meta: st.docs['meta/state'] || null, tasks: arr('tasks'), recurring: arr('recurring'), days: arr('days'), projects: arr('projects') }, null, 1);
+    meta: st.docs['meta/state'] || null, tasks: arr('tasks'), recurring: arr('recurring'), days: arr('days'), projects: arr('projects'), groups: arr('groups') }, null, 1);
 }
 function wireBackup() {
   const json = () => buildBackup();
@@ -1553,7 +1671,7 @@ function wireBackup() {
 }
 function restoreBackup(d) {
   const idsOf = arr => new Set((arr || []).map(x => x.id).filter(Boolean));
-  for (const coll of ['tasks', 'recurring', 'days', 'projects']) {
+  for (const coll of ['tasks', 'recurring', 'days', 'projects', 'groups']) {
     if (!Array.isArray(d[coll])) continue;
     const keep = idsOf(d[coll]);
     for (const id of [...store[coll].keys()]) if (!keep.has(id)) remove(coll, id);
@@ -1578,6 +1696,8 @@ document.addEventListener('click', e => {
     case 'edit': if (x) openTaskSheet(x.id); break;
     case 'newRule': openRuleSheet(null); break;
     case 'openSettings': openSettings(); break;
+    case 'gToggle': ui.gClosed = ui.gClosed || {}; ui.gClosed[b.dataset.k] = !ui.gClosed[b.dataset.k]; saveUi(); renderToday(); break;
+    case 'gAdd': { const g = store.groups.get(b.dataset.gid); const inp = $('#add-' + b.dataset.sec); if (g && inp) { if (b.dataset.sec === 'someday' && !ui.somedayOpen) { ui.somedayOpen = true; saveUi(); renderToday(); } inp.value = '#' + gslug(g.name) + ' '; inp.focus(); } break; }
     case 'newProject': openProjectSheet(null); break;
     case 'editProject': openProjectSheet(b.dataset.id); break;
     case 'togglePDone': ui.pDone = ui.pDone || {}; ui.pDone[b.dataset.id] = !ui.pDone[b.dataset.id]; saveUi(); renderProjects(); break;
@@ -1600,9 +1720,10 @@ document.querySelectorAll('form.add').forEach(f => {
     e.preventDefault();
     const s = f.dataset.section, inp = f.querySelector('input'), sel = f.querySelector('select');
     const title = inp.value.trim(); if (!title) return;
-    const p = { title, est: Number(sel.value) || 0 };
+    const tg = parseTagged(title), est = Number(sel.value) || 0;
     inp.value = ''; sel.value = '0';
-    createTask({ ...p, section: s });
+    const id = createTask({ title: tg.title, est, section: s });
+    if (tg.groupId) put('tasks', id, { ...store.tasks.get(id), groupId: tg.groupId });
   });
 });
 
@@ -1616,11 +1737,13 @@ function initSortable() {
         dragging = false;
         const id = evt.item.dataset.id, x = store.tasks.get(id), to = evt.to.dataset.section;
         if (x) {
-          const ids = [...evt.to.children].map(li => li.dataset.id);
+          const ids = [...evt.to.children].filter(li => li.classList.contains('task')).map(li => li.dataset.id);
           const i = ids.indexOf(id);
           const prev = store.tasks.get(ids[i-1]), next = store.tasks.get(ids[i+1]);
           const order = prev && next ? ((prev.order||0) + (next.order||0)) / 2 : prev ? (prev.order||0) + 1 : next ? (next.order||0) - 1 : 1;
-          if (to !== x.section || order !== x.order) moveTask(x, to, order);
+          let head = evt.item.previousElementSibling; while (head && !head.classList.contains('ghead')) head = head.previousElementSibling;
+          const gid = groupingOn() ? (head ? head.dataset.gid || null : (x.groupId || null)) : (x.groupId || null);
+          if (to !== x.section || order !== x.order || gid !== (x.groupId || null)) { moveTask(x, to, order); put('tasks', id, { ...store.tasks.get(id), groupId: gid }); }
         }
         render();
       },
