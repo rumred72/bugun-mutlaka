@@ -438,22 +438,34 @@ const sync = (() => {
   const save = () => { try { localStorage.setItem(LS_SYNC, JSON.stringify({ clientId: S.clientId, token: S.token, exp: S.exp, fileId: S.fileId, lastOk: S.lastOk })); } catch {} };
   const setStatus = st => { S.status = st; setSync(st); if (sheetState?.kind === 'settings') drawDrive(); };
   const tokenOk = () => S.token && Date.now() < S.exp - 60000;
-  let gis = null;
-  const loadGis = () => gis || (gis = new Promise((res, rej) => {
-    if (window.google?.accounts?.oauth2) return res();
-    const el = document.createElement('script'); el.src = 'https://accounts.google.com/gsi/client'; el.async = true;
-    el.onload = () => res(); el.onerror = () => { gis = null; rej(new Error('gis')); };
-    document.head.append(el);
-  }));
-  function requestToken() {
-    return new Promise((res, rej) => {
-      const tc = google.accounts.oauth2.initTokenClient({
-        client_id: S.clientId, scope: 'https://www.googleapis.com/auth/drive.appdata', prompt: '',
-        callback: r => { if (r.error) return rej(r); S.token = r.access_token; S.exp = Date.now() + (Number(r.expires_in) || 3600) * 1000; save(); res(); },
-        error_callback: e => rej(e),
-      });
-      tc.requestAccessToken();
-    });
+  const LS_STATE = 'bugun-mutlaka-oauth-state';
+  const redirectUri = () => location.origin + location.pathname.replace(/index\.html$/, '');
+  // Google girişi: açılır pencere yerine aynı sayfada Google'a gidip geri döner (telefonda ve ana ekran uygulamasında güvenilir).
+  function startAuth() {
+    const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try { localStorage.setItem(LS_STATE, state); } catch {}
+    const u = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+    u.search = new URLSearchParams({ client_id: S.clientId, redirect_uri: redirectUri(), response_type: 'token',
+      scope: 'https://www.googleapis.com/auth/drive.appdata', include_granted_scopes: 'true', state }).toString();
+    location.assign(u.toString());
+  }
+  // Dönüşte adres çubuğundaki #access_token=... bilgisini alır.
+  function handleReturn() {
+    const h = location.hash.slice(1); if (!h) return null;
+    const q = new URLSearchParams(h);
+    let msg = null;
+    if (q.get('cid')) {
+      const cid = q.get('cid').trim();
+      if (/^[\w-]+\.apps\.googleusercontent\.com$/.test(cid) && cid !== S.clientId) { S.clientId = cid; S.token = ''; S.exp = 0; S.fileId = ''; save(); }
+      msg = 'cid';
+    } else if (q.get('access_token') || q.get('error')) {
+      let expected = null; try { expected = localStorage.getItem(LS_STATE); localStorage.removeItem(LS_STATE); } catch {}
+      if (q.get('error')) msg = 'error:' + q.get('error');
+      else if (expected && q.get('state') === expected) { S.token = q.get('access_token'); S.exp = Date.now() + (Number(q.get('expires_in')) || 3600) * 1000; save(); msg = 'ok'; }
+      else msg = 'error:state';
+    } else return null;
+    try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+    return msg;
   }
   async function api(url, opt = {}) {
     const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + S.token, ...(opt.headers || {}) } });
@@ -473,8 +485,7 @@ const sync = (() => {
     if (S.busy) { S.again = true; return; }
     if (!tokenOk()) {
       if (!interactive) { setStatus('needauth'); return; }
-      try { if (!window.google?.accounts?.oauth2) await loadGis(); await requestToken(); }
-      catch (e) { console.warn(e); setStatus('needauth'); toast('Google girişi tamamlanmadı. Tekrar dene.'); return; }
+      startAuth(); return;
     }
     S.busy = true; setStatus('syncing');
     try {
@@ -506,12 +517,12 @@ const sync = (() => {
     }
   }
   return {
-    S, run, tokenOk, loadGis,
+    S, run, tokenOk, handleReturn, redirectUri,
     get enabled() { return !!S.clientId; },
     soon() { if (!S.clientId) return; clearTimeout(S.timer); S.timer = setTimeout(() => run(false), 2000); },
     configure(id) { S.clientId = id.trim(); S.token = ''; S.exp = 0; S.fileId = ''; save(); },
     disconnect() {
-      if (S.token && window.google?.accounts?.oauth2) { try { google.accounts.oauth2.revoke(S.token, () => {}); } catch {} }
+      if (S.token) { try { fetch('https://oauth2.googleapis.com/revoke?token=' + encodeURIComponent(S.token), { method: 'POST' }).catch(() => {}); } catch {} }
       S.clientId = ''; S.token = ''; S.exp = 0; S.fileId = ''; S.lastOk = 0; save(); setStatus('local');
     },
     initialStatus() { return !S.clientId ? 'local' : tokenOk() ? 'ok' : 'needauth'; },
@@ -1217,8 +1228,6 @@ function drawDrive() {
       <input id="drvId" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off" spellcheck="false" aria-label="Google Client ID">
       <div class="row-btns"><button type="button" class="btn primary" id="drvConnect">Drive'ı bağla</button></div>`;
     const inp = $('#drvId', box);
-    inp.addEventListener('input', () => { if (/apps\.googleusercontent\.com\s*$/.test(inp.value)) sync.loadGis().catch(() => {}); });
-    inp.addEventListener('focus', () => sync.loadGis().catch(() => {}), { once: true });
     $('#drvConnect', box).onclick = () => {
       const v = inp.value.trim();
       if (!/^[\w-]+\.apps\.googleusercontent\.com$/.test(v)) { toast('Client ID "….apps.googleusercontent.com" ile bitmeli.'); return; }
@@ -1229,7 +1238,14 @@ function drawDrive() {
   const last = S.lastOk ? new Date(S.lastOk).toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'henüz yok';
   box.innerHTML = `<h4>Google Drive ile eşitleme</h4>
     <p>Durum: <b>${SYNC_LABEL[S.status] || S.status}</b> · son eşitleme: ${last}. Uygulama her değişiklikten sonra kendiliğinden eşitler; Google oturumu saatte bir yenilenir, o zaman üstteki "Drive'a bağlan"a dokunman yeterli.</p>
-    <div class="row-btns"><button type="button" class="btn primary" id="drvNow">Şimdi eşitle</button><button type="button" class="btn danger" id="drvOff">Bağlantıyı kaldır</button></div>`;
+    <div class="row-btns"><button type="button" class="btn primary" id="drvNow">Şimdi eşitle</button><button type="button" class="btn" id="drvLink">Diğer cihaz için link</button><button type="button" class="btn danger" id="drvOff">Bağlantıyı kaldır</button></div>
+    <p id="drvLinkBox" hidden style="overflow-wrap:anywhere"></p>`;
+  $('#drvLink', box).onclick = () => {
+    const link = sync.redirectUri() + '#cid=' + S.clientId;
+    const lb = $('#drvLinkBox', box); lb.hidden = false;
+    lb.innerHTML = `Bu linki telefonda aç (kendine mesajla gönderebilirsin). Client ID kendiliğinden girilir, sonra "Drive'a bağlan"a dokunman yeterli:<br><b>${esc(link)}</b>`;
+    try { navigator.clipboard.writeText(link).then(() => toast('Link kopyalandı.'), () => {}); } catch {}
+  };
   $('#drvNow', box).onclick = () => sync.run(true);
   $('#drvOff', box).onclick = e => {
     if (e.target.dataset.armed) { sync.disconnect(); drawDrive(); toast('Drive bağlantısı kaldırıldı. Veriler bu cihazda duruyor.'); return; }
@@ -1375,8 +1391,12 @@ async function boot() {
   backend = local;
   setSync(sync.initialStatus());
   try { navigator.storage?.persist?.(); } catch {}
+  const ret = sync.handleReturn();
+  setSync(sync.initialStatus());
+  if (ret === 'ok') toast("Drive'a bağlandı, eşitleniyor…");
+  else if (ret === 'cid') toast("Client ID alındı. Şimdi üstteki \"Drive'a bağlan\"a dokun.");
+  else if (ret && ret.startsWith('error')) toast(ret === 'error:access_denied' ? 'Google girişi iptal edildi ya da izin verilmedi.' : 'Google girişi tamamlanamadı. Tekrar dene.');
   if (sync.enabled) {
-    sync.loadGis().catch(() => {});
     if (sync.tokenOk()) await Promise.race([sync.run(false), new Promise(r => setTimeout(r, 6000))]);
   }
   backend.start(onData);

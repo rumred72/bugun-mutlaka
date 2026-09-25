@@ -30,11 +30,12 @@ uygulama Drive'ındaki başka hiçbir dosyayı göremez.
 4. **API'ler ve Hizmetler → Kimlik bilgileri → Kimlik bilgisi oluştur → OAuth istemci kimliği**:
    - Uygulama türü: **Web uygulaması**
    - **Yetkili JavaScript kaynakları:** `https://rumred72.github.io`
+   - **Yetkili yönlendirme URI'leri:** `https://rumred72.github.io/bugun-mutlaka/` (sondaki `/` dahil)
      (sonunda `/` ve klasör yolu olmadan)
    - Oluştur → çıkan **Client ID**'yi kopyala (`….apps.googleusercontent.com`).
 5. Uygulamada Ayarlar → **Google Drive ile eşitleme** → Client ID'yi yapıştır → **Drive'ı bağla**.
    Google "Bu uygulama doğrulanmadı" derse **Gelişmiş → Devam et** (uygulama senin, sorun yok).
-6. Aynı Client ID'yi diğer cihazda da gir. İki cihaz aynı listeyi görür.
+6. Diğer cihaz için: Ayarlar → **Diğer cihaz için link** → linki telefonda aç → **Drive'a bağlan**. İki cihaz aynı listeyi görür.
 
 Google oturumu güvenlik gereği saatte bir yenilenir: üstteki **"Drive'a bağlan"** yazısına
 dokunman yeterli. Bağlantı olmasa da uygulama çalışır, değişiklikler sonraki eşitlemede gider.
