@@ -52,6 +52,55 @@ svg{width:18px;height:18px;flex:none}
 .app{max-width:640px;margin:0 auto;padding-block:8px 80px}
 .app.wide{max-width:1240px}
 .no-est .est-ui{display:none!important}
+/* report */
+.report{background:var(--surface);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px}
+.rep-controls{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between}
+.rep-nav{display:flex;align-items:center;gap:4px}
+.rep-nav button{border:1px solid var(--line);background:var(--bg);border-radius:8px;width:34px;height:34px;font-size:18px;color:var(--ink)}
+.rep-nav span{min-width:0;font-weight:600;font-size:calc(14px * var(--fs,1));padding-inline:6px;text-align:center}
+.rep-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;border-bottom:2px solid var(--ink);padding-bottom:10px;flex-wrap:wrap}
+.rep-head h2{margin:2px 0 0;font-family:var(--display);font-size:calc(24px * var(--fs,1));line-height:1.15}
+.rep-who{text-align:right;font-size:calc(12.5px * var(--fs,1));color:var(--muted)}
+.rep-who b{color:var(--ink);font-size:calc(15px * var(--fs,1))}
+.rep-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rep-stat{background:var(--bg);border-radius:12px;padding:10px 12px}
+.rep-stat .v{font-family:var(--display);font-size:calc(26px * var(--fs,1));font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.rep-stat .l{font-size:calc(12px * var(--fs,1));color:var(--muted)}
+.rep-stat.ok .v{color:var(--ok)} .rep-stat.mid .v{color:var(--week)} .rep-stat.no .v{color:var(--today)}
+.rep-bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:92px}
+.rep-bars div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:100%;font-size:calc(11.5px * var(--fs,1));color:var(--muted);font-variant-numeric:tabular-nums}
+.rep-bars i{display:block;width:100%;max-width:38px;background:var(--ok);border-radius:5px 5px 2px 2px;min-height:2px}
+.rep-bars .n{color:var(--ink);font-weight:600}
+.rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 22px}
+.rep-sec h3{margin:0 0 6px;font-size:calc(13px * var(--fs,1));letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.rep-sec h3 .c{color:var(--muted);font-weight:600}
+.rep-sec ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.rep-sec li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:calc(14px * var(--fs,1));line-height:1.35}
+.rep-sec li .r{margin-left:auto;color:var(--muted);font-size:calc(12.5px * var(--fs,1));font-variant-numeric:tabular-nums;white-space:nowrap}
+.rep-sec .none{color:var(--muted);font-size:calc(13.5px * var(--fs,1))}
+.rep-sec.ok h3{color:var(--ok)} .rep-sec.mid h3{color:var(--week)} .rep-sec.no h3{color:var(--today)}
+.rep-proj{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:8px;align-items:center;font-size:calc(14px * var(--fs,1))}
+.rep-proj .pbar{height:7px}
+.rep-proj .r{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.up{color:var(--ok)} .down{color:var(--today)}
+.rep-note textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;color:var(--ink);resize:vertical}
+.rep-note p{margin:0;white-space:pre-wrap}
+.rep-actions{display:flex;gap:8px;flex-wrap:wrap}
+.print-only{display:none}
+.hist-title{margin:10px 0 0;font-family:var(--display);font-size:calc(20px * var(--fs,1))}
+@media (max-width:620px){ .rep-grid{grid-template-columns:1fr} .rep-stats{grid-template-columns:repeat(2,1fr)} }
+@media print{
+  @page{margin:14mm}
+  html,body{background:#fff!important;padding:0!important}
+  body{padding:0!important}
+  .top,#banner,.toast,#review,dialog,#view-today,#view-projects,#view-recurring,#view-history>:not(#reportCard){display:none!important}
+  .app{max-width:none;padding:0}
+  .view{padding:0}
+  #reportCard{box-shadow:none;padding:0;color:#111;background:#fff}
+  .no-print{display:none!important}
+  .print-only{display:block}
+  .rep-stat,.rep-note textarea{background:#f4f3ef!important}
+}
 /* projects */
 .ptop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
 .board{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px;align-items:flex-start;-webkit-overflow-scrolling:touch}
@@ -292,7 +341,7 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
       <button role="tab" data-tab="today" aria-selected="true">Bugün</button>
       <button role="tab" data-tab="projects" aria-selected="false">Projeler</button>
       <button role="tab" data-tab="recurring" aria-selected="false">Tekrarlar</button>
-      <button role="tab" data-tab="history" aria-selected="false">Geçmiş</button>
+      <button role="tab" data-tab="history" aria-selected="false">Rapor</button>
     </nav>
   </header>
 
@@ -435,7 +484,7 @@ const fingerprint = st => JSON.stringify([Object.keys(st.docs).sort().map(k => [
 const sync = (() => {
   const S = { clientId: '', token: '', exp: 0, fileId: '', lastOk: 0, busy: false, again: false, timer: null, status: 'local' };
   try { Object.assign(S, JSON.parse(localStorage.getItem(LS_SYNC) || '{}')); } catch {}
-  const save = () => { try { localStorage.setItem(LS_SYNC, JSON.stringify({ clientId: S.clientId, token: S.token, exp: S.exp, fileId: S.fileId, lastOk: S.lastOk })); } catch {} };
+  const save = () => { try { localStorage.setItem(LS_SYNC, JSON.stringify({ clientId: S.clientId, token: S.token, exp: S.exp, fileId: S.fileId, lastOk: S.lastOk, snapWeek: S.snapWeek })); } catch {} };
   const setStatus = st => { S.status = st; setSync(st); if (sheetState?.kind === 'settings') drawDrive(); };
   const tokenOk = () => S.token && Date.now() < S.exp - 60000;
   const LS_STATE = 'bugun-mutlaka-oauth-state';
@@ -480,6 +529,25 @@ const sync = (() => {
     S.fileId = j.files && j.files[0] ? j.files[0].id : ''; save();
     return S.fileId;
   }
+  const SNAP = 'bugun-mutlaka-yedek-';
+  async function listSnapshots() {
+    const q = encodeURIComponent(`name contains '${SNAP}'`);
+    const j = await (await api(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${q}&orderBy=createdTime desc&fields=files(id,name,createdTime)&pageSize=50`)).json();
+    return (j.files || []).filter(f => f.name.startsWith(SNAP));
+  }
+  // Haftada bir Drive'a tarihli yedek bırakır, son 8 tanesini tutar.
+  async function weeklySnapshot(wk) {
+    const files = await listSnapshots();
+    if (!files.some(f => f.name.slice(SNAP.length, SNAP.length + 10) >= wk)) {
+      const bd = 'bs' + Date.now(), body = buildBackup();
+      const metaPart = JSON.stringify({ name: `${SNAP}${today()}.json`, parents: ['appDataFolder'], mimeType: 'application/json' });
+      await api('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + bd },
+        body: `--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metaPart}\r\n--${bd}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${bd}--` });
+    }
+    const all = await listSnapshots();
+    for (const f of all.slice(8)) await api(`https://www.googleapis.com/drive/v3/files/${f.id}`, { method: 'DELETE' });
+  }
+  async function readSnapshot(id) { return (await api(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`)).text(); }
   async function run(interactive) {
     if (!S.clientId) return;
     if (S.busy) { S.again = true; return; }
@@ -508,6 +576,8 @@ const sync = (() => {
         }
       }
       S.lastOk = Date.now(); save(); setStatus('ok');
+      const wk = mondayOf(today());
+      if (S.snapWeek !== wk) { try { await weeklySnapshot(wk); S.snapWeek = wk; save(); } catch (e) { console.warn('snapshot', e); } }
     } catch (e) {
       console.warn(e);
       setStatus(e.auth ? 'needauth' : navigator.onLine === false ? 'offline' : 'error');
@@ -517,7 +587,7 @@ const sync = (() => {
     }
   }
   return {
-    S, run, tokenOk, handleReturn, redirectUri,
+    S, run, tokenOk, handleReturn, redirectUri, listSnapshots, readSnapshot,
     get enabled() { return !!S.clientId; },
     soon() { if (!S.clientId) return; clearTimeout(S.timer); S.timer = setTimeout(() => run(false), 2000); },
     configure(id) { S.clientId = id.trim(); S.token = ''; S.exp = 0; S.fileId = ''; save(); },
@@ -557,9 +627,17 @@ function enqueue(path, op) {
   queues.set(path, p);
   return p;
 }
+let projSnapTimer = null;
+function snapshotProjects() {
+  if (!ready) return;
+  const t = today(), pp = { ...(dayDoc(t).pp || {}) }; let changed = false;
+  for (const pr of store.projects.values()) { const v = projProgress(pr.id); if (v !== null && pp[pr.id] !== v) { pp[pr.id] = v; changed = true; } }
+  if (changed) patchDay(t, d => { d.pp = pp; });
+}
 function put(coll, id, data) {
   const clean = { ...data }; delete clean.id;
   store[coll].set(id, { ...clean, id });
+  if (coll === 'tasks') { clearTimeout(projSnapTimer); projSnapTimer = setTimeout(snapshotProjects, 800); }
   scheduleRender();
   return enqueue(`${coll}/${id}`, () => backend.set(`${coll}/${id}`, clean));
 }
@@ -605,7 +683,7 @@ function toggleDone(x) {
     put('tasks', x.id, { ...x, done: true, doneOn: t, doneAt: Date.now() });
     patchDay(t, d => {
       d.done = d.done.filter(e => e.id !== x.id);
-      d.done.push({ id: x.id, t: x.title, s: x.section, l: !!x.locked, e: x.est || 0 });
+      d.done.push({ id: x.id, t: x.title, s: x.section, l: !!x.locked, e: x.est || 0, pj: x.projectId || null });
       if (x.locked && !d.lockedDoneIds.includes(x.id)) d.lockedDoneIds.push(x.id);
     });
   } else {
@@ -787,9 +865,12 @@ function maybeReview() {
 }
 function startReview(t) {
   const thisMon = mondayOf(t);
-  const missedBy = {};
-  for (const x of tasksArr()) if (!x.done && x.section === 'today' && (x.day || t) < t) missedBy[x.day] = (missedBy[x.day] || 0) + 1;
-  for (const [d, n] of Object.entries(missedBy)) { const doc = dayDoc(d); if (doc.missed !== n) patchDay(d, dd => { dd.missed = n; }); }
+  const missedBy = {}, missedL = {};
+  for (const x of tasksArr()) if (!x.done && x.section === 'today' && (x.day || t) < t) {
+    missedBy[x.day] = (missedBy[x.day] || 0) + 1;
+    (missedL[x.day] = missedL[x.day] || []).push({ id: x.id, t: x.title, p: effProg(x), pj: x.projectId || null });
+  }
+  for (const [d, n] of Object.entries(missedBy)) { const doc = dayDoc(d); if (doc.missed !== n || !doc.missedList) patchDay(d, dd => { dd.missed = n; dd.missedList = missedL[d]; }); }
   for (const x of tasksArr()) if (x.done && x.section !== 'project' && (x.doneOn || t) < t) remove('tasks', x.id);
   for (const r of store.recurring.values()) generateFor(r, t);
 
@@ -947,12 +1028,7 @@ function renderToday() {
     `<b>${dd.done.length}</b> bitti · <b>${openToday.length}</b> görev bugün için açık${remainMin ? `<span class="est-ui"> · kalan süre <b>${fmtMin(remainMin)}</b></span>` : ''}`;
 
   const banner = $('#banner');
-  const hasData = store.tasks.size + store.days.size > 5;
-  const bkOld = ready && hasData && (!m.lastBackup || diffDays(m.lastBackup, t) >= 14);
-  banner.hidden = !bkOld;
-  banner.innerHTML = [
-    bkOld ? `<div class="banner" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:0"><span>${m.lastBackup ? '2 haftadır yedek almadın.' : 'Henüz hiç yedek almadın.'}</span><button class="btn small" data-act="openSettings">Yedek al</button></div>` : '',
-  ].join('');
+  banner.hidden = true;
 
   for (const s of ['today','week','someday']) {
     const secTasks = all.filter(x => x.section === s);
@@ -980,7 +1056,125 @@ function renderRecurring() {
       : '<p class="empty">Henüz tekrarlayan görev yok. Örneğin "Spor · Pzt, Çar, Cum" ya da "Faturaları kontrol et · her ayın 1\'i".</p>'}
     <div><button class="btn primary" data-act="newRule">${ICON.plus} Tekrarlayan görev ekle</button></div>`;
 }
+/* ---------- report ---------- */
+function projPctAt(pid, k) {
+  let best = null, bestK = '';
+  for (const d of store.days.values()) if (d.pp && d.pp[pid] != null && d.date <= k && d.date > bestK) { best = d.pp[pid]; bestK = d.date; }
+  return best;
+}
+function reportRange() {
+  const t = today(), d = ui.repDate && ui.repDate <= t ? ui.repDate : t;
+  if (ui.repMode === 'week') { const mon = mondayOf(d); return [mon, addDays(mon, 6)]; }
+  return [d, d];
+}
+function buildReport() {
+  const t = today(), [from, to] = reportRange(), days = [];
+  for (let k = from; k <= to && k <= t; k = addDays(k, 1)) days.push(k);
+  const onlyProj = ui.repScope === 'projects';
+  const pjOf = id => store.tasks.get(id)?.projectId || null;
+  const ok = pj => !onlyProj || !!pj;
+  const done = [], doneIds = new Set();
+  for (const k of days) for (const e of dayDoc(k).done) { const pj = e.pj !== undefined ? e.pj : pjOf(e.id); if (!ok(pj) || doneIds.has(e.id)) continue; done.push({ ...e, pj, day: k }); doneIds.add(e.id); }
+  const prog = new Map();
+  for (const k of days) for (const e of dayDoc(k).prog || []) {
+    if (doneIds.has(e.id)) continue; const pj = pjOf(e.id); if (!ok(pj)) continue;
+    const c = prog.get(e.id); prog.set(e.id, c ? { ...c, b: e.b, t: e.t } : { id: e.id, t: e.t, a: e.a, b: e.b, pj });
+  }
+  const missed = new Map();
+  for (const k of days) { if (k === t) continue; for (const e of dayDoc(k).missedList || []) if (!doneIds.has(e.id) && ok(e.pj)) missed.set(e.id, e); }
+  if (days.includes(t)) for (const x of tasksArr()) if (x.section === 'today' && !x.done && ok(x.projectId || null)) missed.set(x.id, { id: x.id, t: x.title, p: effProg(x), pj: x.projectId || null });
+  const inProg = [];
+  for (const e of prog.values()) if (e.b > 0) inProg.push(e);
+  for (const e of missed.values()) if (!prog.has(e.id) && e.p > 0) inProg.push({ id: e.id, t: e.t, a: null, b: e.p, pj: e.pj });
+  const notDone = [...missed.values()].filter(e => !prog.has(e.id) && !(e.p > 0));
+  let missedCount = 0; for (const k of days) if (k !== t) missedCount += dayDoc(k).missed || 0;
+  const projects = [...store.projects.values()].filter(p => !p.archived).sort((a, b) => (a.order || 0) - (b.order || 0)).map(pr => {
+    const cur = to >= t ? projProgress(pr.id) : projPctAt(pr.id, to);
+    const before = projPctAt(pr.id, addDays(from, -1));
+    return { pr, cur, delta: cur != null && before != null ? cur - before : null };
+  }).filter(x => x.cur != null);
+  const perDay = [...Array(ui.repMode === 'week' ? 7 : 0)].map((_, i) => { const k = addDays(from, i); return { k, n: k > t ? null : dayDoc(k).done.filter(e => ok(e.pj !== undefined ? e.pj : pjOf(e.id))).length }; });
+  const notes = days.map(k => ({ k, n: (dayDoc(k).note || '').trim() })).filter(x => x.n);
+  return { t, from, to, days, done, inProg, notDone, projects, perDay, notes, est: done.reduce((a, e) => a + (e.e || 0), 0), missedCount };
+}
+const pname = pj => store.projects.get(pj)?.name || '';
+const pcolor = pj => store.projects.get(pj)?.color || 'var(--muted)';
+const repChip = pj => pj && store.projects.has(pj) ? `<span class="pchip"><i style="background:${pcolor(pj)}"></i>${esc(pname(pj))}</span>` : '';
+const signed = n => n > 0 ? `<span class="up">+${n}</span>` : n < 0 ? `<span class="down">${n}</span>` : '±0';
+function reportTitle(r) {
+  return ui.repMode === 'week'
+    ? `${fmtLong(r.from)} – ${parseKey(r.to).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : parseKey(r.from).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
+}
+function reportHtml() {
+  const r = buildReport(), week = ui.repMode === 'week', name = (meta().reportName || '').trim();
+  const doneList = week
+    ? (() => { const g = new Map(); for (const e of r.done) { const key = e.pj && store.projects.has(e.pj) ? e.pj : ''; if (!g.has(key)) g.set(key, []); g.get(key).push(e); }
+        return [...g.entries()].sort((a, b) => (a[0] ? 0 : 1) - (b[0] ? 0 : 1)).map(([pj, es]) => `<li><b>${pj ? esc(pname(pj)) : 'Diğer'} (${es.length}):</b> ${es.map(e => esc(e.t)).join(', ')}</li>`).join(''); })()
+    : r.done.map(e => `<li>${esc(e.t)} ${repChip(e.pj)}${e.e ? `<span class="r est-ui">${fmtMin(e.e)}</span>` : ''}</li>`).join('');
+  const progList = r.inProg.map(e => `<li>${esc(e.t)} ${repChip(e.pj)}<span class="r">%${e.b}${e.a != null && e.b !== e.a ? ` (${signed(e.b - e.a)})` : ''}</span></li>`).join('');
+  const notList = r.notDone.map(e => `<li>${esc(e.t)} ${repChip(e.pj)}</li>`).join('');
+  const projList = r.projects.map(x => `<div class="rep-proj"><span>${esc(x.pr.name)}</span><div class="pbar"><i style="width:${x.cur}%;background:${x.pr.color}"></i></div><span class="r">%${x.cur}${x.delta != null ? ` <small>(${signed(x.delta)})</small>` : ''}</span></div>`).join('');
+  const maxN = Math.max(1, ...r.perDay.map(d => d.n || 0));
+  const note = !week ? `<div class="rep-note"><h3 style="margin:0 0 6px;font-size:calc(13px * var(--fs,1));letter-spacing:.06em;text-transform:uppercase">Not</h3>
+      <textarea class="no-print" id="repNote" rows="2" placeholder="Güne dair kısa bir not (isteğe bağlı), rapora eklenir">${esc(dayDoc(r.from).note || '')}</textarea>
+      ${dayDoc(r.from).note ? `<p class="print-only">${esc(dayDoc(r.from).note)}</p>` : ''}</div>`
+    : r.notes.length ? `<div class="rep-note"><h3 style="margin:0 0 6px;font-size:calc(13px * var(--fs,1));letter-spacing:.06em;text-transform:uppercase">Notlar</h3>${r.notes.map(x => `<p><b>${fmtDow(x.k)}:</b> ${esc(x.n)}</p>`).join('')}</div>` : '';
+  return `<section class="report" id="reportCard">
+    <div class="rep-controls no-print">
+      <div class="seg" id="repMode"><button type="button" data-rm="day" aria-pressed="${!week}">Günlük</button><button type="button" data-rm="week" aria-pressed="${week}">Haftalık</button></div>
+      <div class="rep-nav"><button type="button" data-act="repPrev" aria-label="Önceki">‹</button><span>${week ? 'Hafta' : 'Gün'}</span><button type="button" data-act="repNext" aria-label="Sonraki" ${r.to >= r.t ? 'disabled' : ''}>›</button></div>
+      <div class="seg" id="repScope"><button type="button" data-rs="all" aria-pressed="${ui.repScope !== 'projects'}">Tüm görevler</button><button type="button" data-rs="projects" aria-pressed="${ui.repScope === 'projects'}">Sadece projeler</button></div>
+    </div>
+    <header class="rep-head"><div><p class="eyebrow">${week ? 'Haftalık rapor' : 'Günlük rapor'}</p><h2>${reportTitle(r)}</h2></div>${name ? `<div class="rep-who">Hazırlayan<br><b>${esc(name)}</b></div>` : ''}</header>
+    <div class="rep-stats">
+      <div class="rep-stat ok"><div class="v">${r.done.length}</div><div class="l">tamamlandı</div></div>
+      <div class="rep-stat mid"><div class="v">${r.inProg.length}</div><div class="l">devam ediyor</div></div>
+      <div class="rep-stat no"><div class="v">${r.notDone.length}</div><div class="l">yapılmadı</div></div>
+      <div class="rep-stat"><div class="v">${r.est ? fmtMin(r.est) : (week ? (r.days.length ? (r.done.length / r.days.length).toFixed(1).replace('.', ',') : '0') : '–')}</div><div class="l">${r.est ? 'tamamlanan iş süresi' : (week ? 'günlük ortalama' : 'süre girilmedi')}</div></div>
+    </div>
+    ${week ? `<div class="rep-bars">${r.perDay.map(d => `<div>${d.n == null ? '' : `<span class="n">${d.n}</span><i style="height:${Math.round(60 * (d.n || 0) / maxN)}px"></i>`}<span>${DOW_SHORT[dow(d.k)]}</span></div>`).join('')}</div>` : ''}
+    <div class="rep-grid">
+      <div class="rep-sec ok"><h3>Tamamlananlar <span class="c">${r.done.length}</span></h3>${r.done.length ? `<ul>${doneList}</ul>` : '<p class="none">Yok</p>'}</div>
+      <div class="rep-sec mid"><h3>Devam eden / yarıda kalan <span class="c">${r.inProg.length}</span></h3>${r.inProg.length ? `<ul>${progList}</ul>` : '<p class="none">Yok</p>'}</div>
+      <div class="rep-sec no"><h3>Yapılmayanlar <span class="c">${r.notDone.length}</span></h3>${r.notDone.length ? `<ul>${notList}</ul>` : '<p class="none">Yok</p>'}</div>
+      <div class="rep-sec"><h3>Projeler</h3>${r.projects.length ? `<div style="display:flex;flex-direction:column;gap:8px">${projList}</div>` : '<p class="none">Aktif proje yok</p>'}</div>
+    </div>
+    ${note}
+    <div class="rep-actions no-print"><button type="button" class="btn primary" data-act="repShare">Paylaş / kopyala</button><button type="button" class="btn" data-act="repPrint">PDF / Yazdır</button>
+      ${name ? '' : '<span class="muted" style="align-self:center;font-size:calc(13px * var(--fs,1))">İpucu: Ayarlar\'dan rapora adını ekleyebilirsin.</span>'}</div>
+  </section>`;
+}
+function reportText() {
+  const r = buildReport(), week = ui.repMode === 'week', name = (meta().reportName || '').trim();
+  const tag = pj => pj && store.projects.has(pj) ? ` [${pname(pj)}]` : '';
+  const L = [`${week ? 'HAFTALIK RAPOR' : 'GÜNLÜK RAPOR'} · ${reportTitle(r)}`];
+  if (name) L.push(`Hazırlayan: ${name}`);
+  L.push('', `Özet: ${r.done.length} tamamlandı · ${r.inProg.length} devam ediyor · ${r.notDone.length} yapılmadı${r.est ? ` · ${fmtMin(r.est)} iş` : ''}`);
+  L.push('', `✅ TAMAMLANANLAR (${r.done.length})`); for (const e of r.done) L.push(`• ${e.t}${tag(e.pj)}${week ? ` (${fmtDow(e.day)})` : ''}`); if (!r.done.length) L.push('• —');
+  L.push('', `🔶 DEVAM EDEN / YARIDA KALAN (${r.inProg.length})`); for (const e of r.inProg) L.push(`• ${e.t}${tag(e.pj)} — %${e.b}${e.a != null && e.b !== e.a ? ` (${e.b - e.a > 0 ? '+' : ''}${e.b - e.a})` : ''}`); if (!r.inProg.length) L.push('• —');
+  L.push('', `⭕ YAPILMAYANLAR (${r.notDone.length})`); for (const e of r.notDone) L.push(`• ${e.t}${tag(e.pj)}`); if (!r.notDone.length) L.push('• —');
+  if (r.projects.length) { L.push('', '📁 PROJELER'); for (const x of r.projects) L.push(`• ${x.pr.name}: %${x.cur}${x.delta != null ? ` (${x.delta > 0 ? '+' : ''}${x.delta})` : ''}`); }
+  const notes = week ? r.notes.map(x => `${fmtDow(x.k)}: ${x.n}`) : (dayDoc(r.from).note ? [dayDoc(r.from).note] : []);
+  if (notes.length) { L.push('', '📝 NOT'); L.push(...notes); }
+  return L.join('\n');
+}
+async function shareReport() {
+  const text = reportText();
+  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text); toast('Rapor kopyalandı. WhatsApp ya da e-postaya yapıştırabilirsin.'); }
+  catch { toast('Kopyalanamadı. "PDF / Yazdır"ı dene.'); }
+}
+function wireReport() {
+  const v = $('#view-history');
+  v.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { ui.repMode = b.dataset.rm; saveUi(); renderHistory(); });
+  v.querySelectorAll('[data-rs]').forEach(b => b.onclick = () => { ui.repScope = b.dataset.rs; saveUi(); renderHistory(); });
+  const n = $('#repNote', v);
+  if (n) n.addEventListener('change', () => { const [d] = reportRange(); patchDay(d, dd => { dd.note = n.value.trim(); }); toast('Not kaydedildi.'); });
+}
+
 function renderHistory() {
+  if (document.activeElement && document.activeElement.id === 'repNote') return;
   const t = today(), mon = mondayOf(t);
   const weekDays = [...Array(7)].map((_, i) => addDays(mon, i)).filter(k => k <= t);
   let doneWeek = 0, planDone = 0, missed = 0;
@@ -997,7 +1191,7 @@ function renderHistory() {
   const sd = dayDoc(sel);
   const postponed = tasksArr().filter(x => !x.done && (x.postponed || 0) >= 2).sort((a, b) => b.postponed - a.postponed).slice(0, 5);
 
-  $('#view-history').innerHTML = `
+  $('#view-history').innerHTML = reportHtml() + `<h2 class="hist-title">Geçmiş</h2>
     <div class="stats">
       <div class="stat"><div class="v">${doneWeek}</div><div class="l">bu hafta biten görev</div></div>
       <div class="stat"><div class="v">${rate === null ? '–' : '%' + rate}</div><div class="l">"bugün mutlaka" planına uyma</div></div>
@@ -1020,6 +1214,7 @@ function renderHistory() {
     <div class="hsec"><h3>En çok ertelenenler</h3>
       ${postponed.length ? `<ul class="tasks">${postponed.map(x => taskRow(x, { drag: false })).join('')}</ul>` : '<p class="empty" style="padding:0">İki kereden fazla ertelenen görev yok.</p>'}
     </div>`;
+  wireReport();
 }
 
 /* ---------- sheets ---------- */
@@ -1179,6 +1374,8 @@ function openSettings() {
   sheetState = { kind:'settings' };
   sheet.innerHTML = `<div class="sheet-body">
     <div class="sheet-head"><h3>Ayarlar</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    <div class="backup"><h4>Rapor</h4>
+      <label class="field"><span>Raporda görünecek adın</span><input id="repName" value="${esc(m.reportName || '')}" maxlength="60" placeholder="Örn. Cihat Yılmaz" style="border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;color:var(--ink)"></label></div>
     <div class="backup" id="apBox">
       <h4>Görünüm</h4>
       <p>Değişiklikler hemen uygulanır. Bu ayarlar sadece bu cihazda geçerli, telefon ve bilgisayar ayrı ayarlanabilir.</p>
@@ -1198,11 +1395,11 @@ function openSettings() {
       <div class="confirm" id="bkConfirm" hidden></div>
     </div>
     <div class="backup drive" id="driveBox"></div>
-    <div class="backup"><h4>Telefona kurmak</h4><p>iPhone: Safari'de Paylaş → Ana Ekrana Ekle. Android: Chrome'da ⋮ → Ana ekrana ekle (ya da Uygulamayı yükle). Kurulunca internetsiz de çalışır.</p></div>
   </div>`;
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
   wireBackup();
   drawDrive();
+  $('#repName', sheet).addEventListener('change', e => putMeta({ reportName: e.target.value.trim() }));
   const setUi = (k, v) => { ui[k] = v; saveUi(); applyAppearance(); };
   const fs = $('#apFs', sheet);
   fs.addEventListener('input', () => { setUi('fs', Number(fs.value)); $('#apFsOut', sheet).textContent = '%' + Math.round(fs.value * 100); });
@@ -1237,9 +1434,21 @@ function drawDrive() {
   }
   const last = S.lastOk ? new Date(S.lastOk).toLocaleString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'henüz yok';
   box.innerHTML = `<h4>Google Drive ile eşitleme</h4>
-    <p>Durum: <b>${SYNC_LABEL[S.status] || S.status}</b> · son eşitleme: ${last}. Uygulama her değişiklikten sonra kendiliğinden eşitler; Google oturumu saatte bir yenilenir, o zaman üstteki "Drive'a bağlan"a dokunman yeterli.</p>
-    <div class="row-btns"><button type="button" class="btn primary" id="drvNow">Şimdi eşitle</button><button type="button" class="btn" id="drvLink">Diğer cihaz için link</button><button type="button" class="btn danger" id="drvOff">Bağlantıyı kaldır</button></div>
-    <p id="drvLinkBox" hidden style="overflow-wrap:anywhere"></p>`;
+    <p>Durum: <b>${SYNC_LABEL[S.status] || S.status}</b> · son eşitleme: ${last}. Her değişiklik Drive'a kendiliğinden gider ve her hafta Drive'a tarihli bir yedek bırakılır (son 8 hafta saklanır). Google oturumu saatte bir yenilenir; o zaman üstteki "Drive'a bağlan"a dokunman yeterli.</p>
+    <div class="row-btns"><button type="button" class="btn primary" id="drvNow">Şimdi eşitle</button><button type="button" class="btn" id="drvLink">Diğer cihaz için link</button><button type="button" class="btn" id="drvSnaps">Haftalık yedekler</button><button type="button" class="btn danger" id="drvOff">Bağlantıyı kaldır</button></div>
+    <p id="drvLinkBox" hidden style="overflow-wrap:anywhere"></p>
+    <div id="drvSnapBox" hidden></div>`;
+  $('#drvSnaps', box).onclick = async () => {
+    const sb = $('#drvSnapBox', box); sb.hidden = false;
+    if (!sync.tokenOk()) { sb.innerHTML = '<p>Önce üstteki "Drive\'a bağlan"a dokun.</p>'; return; }
+    sb.innerHTML = '<p>Yükleniyor…</p>';
+    try {
+      const fs = await sync.listSnapshots();
+      sb.innerHTML = fs.length ? `<p>Drive'da her hafta otomatik alınan yedekler (son 8 hafta). Birini seçersen önce ne içerdiğini gösterir, onaylarsan geri yükler.</p><div class="row-btns">${fs.map(f => `<button type="button" class="btn small" data-snap="${f.id}">${new Date(f.createdTime).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</button>`).join('')}</div>`
+        : '<p>Henüz haftalık yedek yok. İlk yedek bu hafta ilk eşitlemede alınır.</p>';
+      sb.querySelectorAll('[data-snap]').forEach(b => b.onclick = async () => { try { askRestore(await sync.readSnapshot(b.dataset.snap)); } catch { toast('Yedek okunamadı.'); } });
+    } catch { sb.innerHTML = '<p>Yedek listesi alınamadı. Bağlantını kontrol et.</p>'; }
+  };
   $('#drvLink', box).onclick = () => {
     const link = sync.redirectUri() + '#cid=' + S.clientId;
     const lb = $('#drvLinkBox', box); lb.hidden = false;
@@ -1254,10 +1463,12 @@ function drawDrive() {
 }
 
 /* ---------- backup ---------- */
+let askRestore = () => {};
 function buildBackup() {
-  const strip = m => [...m.values()].map(x => { const c = { ...x }; return c; });
+  const st = local.snapshot();
+  const arr = c => Object.entries(st.docs).filter(([k]) => k.startsWith(c + '/')).map(([k, v]) => ({ ...v, id: k.slice(c.length + 1) }));
   return JSON.stringify({ app: 'bugun-mutlaka', version: 1, exportedAt: new Date().toISOString(),
-    meta: store.meta, tasks: strip(store.tasks), recurring: strip(store.recurring), days: strip(store.days), projects: strip(store.projects) }, null, 1);
+    meta: st.docs['meta/state'] || null, tasks: arr('tasks'), recurring: arr('recurring'), days: arr('days'), projects: arr('projects') }, null, 1);
 }
 function wireBackup() {
   const json = () => buildBackup();
@@ -1281,7 +1492,7 @@ function wireBackup() {
     try { navigator.clipboard.writeText(text).then(ok, () => toast('Kopyalanamadı. "Yedeği indir"i dene.')); }
     catch { toast('Kopyalanamadı. "Yedeği indir"i dene.'); }
   };
-  const askRestore = text => {
+  askRestore = text => {
     let d;
     try { d = JSON.parse(String(text).trim()); } catch { toast('Yedek okunamadı. Metnin tamamını kopyaladığından emin ol.'); return; }
     if (!d || d.app !== 'bugun-mutlaka' || !Array.isArray(d.tasks)) { toast('Bu bir Bugün Mutlaka yedeği değil.'); return; }
@@ -1336,6 +1547,9 @@ document.addEventListener('click', e => {
     case 'togglePDone': ui.pDone = ui.pDone || {}; ui.pDone[b.dataset.id] = !ui.pDone[b.dataset.id]; saveUi(); renderProjects(); break;
     case 'editRule': openRuleSheet(b.dataset.id); break;
     case 'selDay': ui.selDay = b.dataset.k; saveUi(); renderHistory(); break;
+    case 'repPrev': case 'repNext': { const [from] = reportRange(); const step = (ui.repMode === 'week' ? 7 : 1) * (b.dataset.act === 'repPrev' ? -1 : 1); const nd = addDays(from, step); ui.repDate = nd > today() ? today() : nd; saveUi(); renderHistory(); break; }
+    case 'repShare': shareReport(); break;
+    case 'repPrint': window.print(); break;
   }
 });
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { ui.tab = b.dataset.tab; saveUi(); render(); }));
