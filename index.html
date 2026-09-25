@@ -50,6 +50,29 @@ button{cursor:pointer}
 :focus-visible{outline:2px solid var(--lock);outline-offset:2px}
 svg{width:18px;height:18px;flex:none}
 .app{max-width:640px;margin:0 auto;padding-block:8px 80px}
+.app.wide{max-width:1240px}
+.no-est .est-ui{display:none!important}
+/* projects */
+.ptop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.board{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px;align-items:flex-start;-webkit-overflow-scrolling:touch}
+.pcol{flex:0 0 min(320px,86vw);scroll-snap-align:start;background:var(--surface);border-radius:16px;padding:14px 12px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}
+.pcol .task{box-shadow:none;background:var(--bg)}
+.pcol .task.pinned{background:color-mix(in srgb,var(--lock) 11%,var(--bg))}
+.phead{display:flex;align-items:center;gap:8px}
+.phead h2{margin:0;font-family:var(--display);font-size:calc(18px * var(--fs,1));font-weight:700;flex:1;min-width:0;overflow-wrap:anywhere}
+.phead .pct{font-size:calc(13px * var(--fs,1));font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
+.pbar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:3px}
+.pmeta{font-size:calc(12.5px * var(--fs,1));color:var(--muted);margin-top:-4px}
+.pdone-btn{border:0;background:none;color:var(--muted);font-size:calc(13.5px * var(--fs,1));text-align:left;padding:4px 2px;display:flex;align-items:center;gap:6px}
+.pchip{display:inline-flex;align-items:center;gap:5px;border-radius:6px;padding:1px 7px;background:var(--surface-2);font-size:calc(12px * var(--fs,1))}
+.pchip i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.plist{min-height:8px}
+.archive{display:flex;flex-direction:column;gap:6px}
+.archive button{display:flex;align-items:center;gap:8px;border:0;background:var(--surface);border-radius:10px;padding:10px 12px;text-align:left;box-shadow:var(--shadow)}
+.send{display:flex;flex-direction:column;gap:8px;background:var(--bg);border-radius:12px;padding:12px}
+.send select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px;color:var(--ink)}
+
 
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 0;margin-inline:-16px;padding-inline:16px}
 .datebar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
@@ -256,7 +279,7 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
 </head>
 <body>
 
-<div class="app">
+<div class="app" id="app">
   <header class="top">
     <div class="datebar">
       <div><p class="eyebrow" id="dow"></p><h1 id="dateTitle"></h1></div>
@@ -267,6 +290,7 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
     </div>
     <nav class="tabs" role="tablist">
       <button role="tab" data-tab="today" aria-selected="true">Bugün</button>
+      <button role="tab" data-tab="projects" aria-selected="false">Projeler</button>
       <button role="tab" data-tab="recurring" aria-selected="false">Tekrarlar</button>
       <button role="tab" data-tab="history" aria-selected="false">Geçmiş</button>
     </nav>
@@ -280,15 +304,14 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
       <section class="sec" data-sec="today">
         <div class="sec-head"><span class="dot"></span><h2>Bugün mutlaka</h2><span class="count" id="count-today"></span></div>
         <ul class="tasks" data-section="today" id="list-today"></ul>
-        <div class="add-warn" id="warn-today" hidden></div>
-        <form class="add" data-section="today"><input id="add-today" placeholder="Bugün mutlaka yapılacak…" maxlength="200" autocomplete="off"><select id="est-today" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
+                <form class="add" data-section="today"><input id="add-today" placeholder="Bugün mutlaka yapılacak…" maxlength="200" autocomplete="off"><select id="est-today" class="est-ui" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
         <ul class="done-list" id="done-today"></ul>
       </section>
 
       <section class="sec" data-sec="week">
         <div class="sec-head"><span class="dot"></span><h2>Bu hafta</h2><span class="count" id="count-week"></span></div>
         <ul class="tasks" data-section="week" id="list-week"></ul>
-        <form class="add" data-section="week"><input id="add-week" placeholder="Bu hafta içinde…" maxlength="200" autocomplete="off"><select id="est-week" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
+        <form class="add" data-section="week"><input id="add-week" placeholder="Bu hafta içinde…" maxlength="200" autocomplete="off"><select id="est-week" class="est-ui" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
         <ul class="done-list" id="done-week"></ul>
       </section>
 
@@ -296,12 +319,13 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
         <div class="sec-head"><span class="dot"></span><h2>Bir gün</h2><span class="count" id="count-someday"></span><span class="spacer"></span><button class="collapse" id="toggleSomeday"></button></div>
         <div id="somedayBody" class="sec">
           <ul class="tasks" data-section="someday" id="list-someday"></ul>
-          <form class="add" data-section="someday"><input id="add-someday" placeholder="Fikir, acelesi olmayan iş…" maxlength="200" autocomplete="off"><select id="est-someday" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
+          <form class="add" data-section="someday"><input id="add-someday" placeholder="Fikir, acelesi olmayan iş…" maxlength="200" autocomplete="off"><select id="est-someday" class="est-ui" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
           <ul class="done-list" id="done-someday"></ul>
         </div>
       </section>
     </section>
 
+    <section class="view" id="view-projects" hidden></section>
     <section class="view" id="view-recurring" hidden></section>
     <section class="view" id="view-history" hidden></section>
   </main>
@@ -327,7 +351,8 @@ const ICON = {
   x: SVG('<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>'),
 };
 const SECTIONS = { today: 'Bugün mutlaka', week: 'Bu hafta', someday: 'Bir gün' };
-const EST = [[0,'Yok'],[15,'15 dk'],[30,'30 dk'],[60,'1 sa'],[90,'1,5 sa'],[120,'2 sa'],[180,'3 sa']];
+const EST = [[0,'Yok'],[15,'15 dk'],[30,'30 dk'],[45,'45 dk'],[60,'1 sa'],[90,'1,5 sa'],[120,'2 sa'],[180,'3 sa'],[240,'4 sa'],[300,'5 sa'],[360,'6 sa'],[420,'7 sa'],[480,'8 sa'],[540,'9 sa'],[600,'10 sa']];
+const PCOLORS = ['#D97757','#3B6FD8','#3C8B5E','#7A56C9','#C8457A','#BF8B2E','#2F8F9D','#6B6A64'];
 const DOW_SHORT = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const LS_LOCAL = 'bugun-mutlaka-local-v1', LS_UI = 'bugun-mutlaka-ui-v1';
 
@@ -362,11 +387,12 @@ function applyAppearance() {
   st.setProperty('--accent-l', a[0]); st.setProperty('--accent-d', a[1]);
   if (ui.headFont === 'sans') st.setProperty('--display', 'var(--body)'); else st.removeProperty('--display');
   if (ui.theme === 'light' || ui.theme === 'dark') root.dataset.theme = ui.theme; else delete root.dataset.theme;
+  root.classList.toggle('no-est', ui.showEst === false);
 }
 applyAppearance();
 
 /* ---------- store & backends ---------- */
-const store = { tasks:new Map(), recurring:new Map(), days:new Map(), meta:null };
+const store = { tasks:new Map(), recurring:new Map(), days:new Map(), projects:new Map(), meta:null };
 const loaded = new Set();
 let backend = null, ready = false, currentDay = today();
 
@@ -378,7 +404,7 @@ const local = (() => {
   const persist = () => { try { localStorage.setItem(LS_DATA, JSON.stringify(st)); } catch { toast('Cihaz depolaması yazılamadı. Hemen yedek al.'); } };
   const emit = () => {
     if (!cb) return;
-    for (const c of ['tasks','recurring','days'])
+    for (const c of ['tasks','recurring','days','projects'])
       cb(c, Object.entries(st.docs).filter(([k]) => k.startsWith(c + '/')).map(([k, v]) => [k.slice(c.length + 1), v]));
     cb('meta', st.docs['meta/state'] || null);
   };
@@ -496,9 +522,9 @@ function onData(kind, payload) {
   if (kind === 'meta') store.meta = payload;
   else store[kind] = new Map(payload.map(([id, d]) => [id, { ...d, id }]));
   loaded.add(kind);
-  if (!ready && ['tasks','recurring','days','meta'].every(k => loaded.has(k))) {
+  if (!ready && ['tasks','recurring','days','projects','meta'].every(k => loaded.has(k))) {
     ready = true;
-    if (!store.meta) putMeta({ lastReview: today(), todayLimit: 5 });
+    if (!store.meta) putMeta({ lastReview: today() });
   }
   if (ready) maybeReview();
   scheduleRender();
@@ -532,12 +558,12 @@ function remove(coll, id) {
   return enqueue(`${coll}/${id}`, () => backend.del(`${coll}/${id}`));
 }
 function putMeta(patch) {
-  store.meta = { lastReview: today(), todayLimit: 5, ...(store.meta || {}), ...patch };
+  store.meta = { lastReview: today(), ...(store.meta || {}), ...patch };
   const clean = { ...store.meta };
   scheduleRender();
   return enqueue('meta/state', () => backend.set('meta/state', clean));
 }
-const meta = () => store.meta || { todayLimit: 5 };
+const meta = () => store.meta || {};
 const tasksArr = () => [...store.tasks.values()];
 function dayDoc(d) {
   const x = store.days.get(d);
@@ -595,6 +621,127 @@ function recordProgress(before, after) {
 }
 const activeToday = () => tasksArr().filter(x => x.section === 'today' && !x.done).length;
 
+/* ---------- projects ---------- */
+const activeProjects = () => [...store.projects.values()].filter(p => !p.archived).sort((a, b) => (a.order || 0) - (b.order || 0));
+const projTasks = pid => tasksArr().filter(x => x.section === 'project' && x.projectId === pid);
+function projProgress(pid) {
+  const ts = projTasks(pid); if (!ts.length) return null;
+  return Math.round(ts.reduce((s, x) => s + (x.done ? 100 : effProg(x)), 0) / ts.length);
+}
+function projChip(x) {
+  if (!x.projectId || x.section === 'project') return '';
+  const pr = store.projects.get(x.projectId); if (!pr) return '';
+  return `<span class="pchip"><i style="background:${pr.color}"></i>${esc(pr.name)}</span>`;
+}
+function sendToDaily(x, target, copy) {
+  const t = today();
+  const base = { ...x, section: target, order: endOrder(target), day: t, weekOf: mondayOf(t), postponed: 0, progBase: effProg(x), locked: false, lockedOn: null };
+  if (copy) {
+    const id = newId();
+    put('tasks', id, { ...base, id, created: Date.now(), subs: (x.subs || []).map(s => ({ ...s, id: newId() })) });
+  } else put('tasks', x.id, base);
+  toast(`${copy ? 'Kopyalandı' : 'Taşındı'}: ${SECTIONS[target]}`);
+}
+function sendToProject(x, pid) {
+  const pr = store.projects.get(pid); if (!pr) return;
+  put('tasks', x.id, { ...x, section: 'project', projectId: pid, order: endOrder('project'), locked: false, lockedOn: null });
+  toast(`"${pr.name}" projesine taşındı.`);
+}
+function openProjectSheet(pid) {
+  const pr = pid ? store.projects.get(pid) : { name: '', color: PCOLORS[store.projects.size % PCOLORS.length], archived: false };
+  if (!pr) return;
+  sheetState = { kind: 'project', id: pid, color: pr.color, delArmed: false };
+  const n = pid ? projTasks(pid).length : 0;
+  sheet.innerHTML = `<form class="sheet-body" id="projForm">
+    <div class="sheet-head"><h3>${pid ? 'Projeyi düzenle' : 'Yeni proje'}</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    <label class="field"><span>Proje adı</span><input id="p-name" value="${esc(pr.name)}" maxlength="80" required placeholder="Örn. Masa saati"></label>
+    <div class="field"><span>Renk</span><div class="swatches" id="p-color">${PCOLORS.map(c => `<button type="button" data-pc="${c}" style="background:${c}" aria-label="Renk" aria-pressed="${c === pr.color}"></button>`).join('')}</div></div>
+    ${pid && !pr.archived ? `<div class="field"><span>Sıra</span><div class="row-btns"><button type="button" class="btn small" data-mv="-1">← Sola</button><button type="button" class="btn small" data-mv="1">Sağa →</button></div></div>` : ''}
+    <div class="sheet-actions"><span class="lead">
+      ${pid ? `<button type="button" class="btn" data-arch>${pr.archived ? 'Arşivden çıkar' : 'Arşivle'}</button><button type="button" class="btn danger" data-del>Sil</button>` : ''}</span>
+      <button type="submit" class="btn primary">${pid ? 'Kaydet' : 'Oluştur'}</button></div>
+  </form>`;
+  sheet.querySelector('[data-close]').onclick = () => sheet.close();
+  wirePress($('#p-color', sheet), 'pc', v => sheetState.color = v);
+  sheet.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => {
+    const list = activeProjects(), i = list.findIndex(p => p.id === pid), j = i + Number(b.dataset.mv);
+    if (j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]];
+    list.forEach((p, k) => { if ((p.order || 0) !== k) put('projects', p.id, { ...p, order: k }); });
+    toast(Number(b.dataset.mv) < 0 ? 'Sola taşındı.' : 'Sağa taşındı.');
+  });
+  const ar = sheet.querySelector('[data-arch]');
+  if (ar) ar.onclick = () => { const cur = store.projects.get(pid); put('projects', pid, { ...cur, archived: !cur.archived, order: cur.archived ? activeProjects().length : cur.order }); sheet.close(); toast(cur.archived ? 'Proje arşivden çıktı.' : 'Proje arşivlendi.'); };
+  const del = sheet.querySelector('[data-del]');
+  if (del) del.onclick = () => {
+    if (!sheetState.delArmed) { sheetState.delArmed = true; del.textContent = n ? `Proje ve ${n} görevi silinsin mi? Tekrar dokun` : 'Silmek için tekrar dokun'; return; }
+    for (const x of projTasks(pid)) remove('tasks', x.id);
+    remove('projects', pid); sheet.close(); toast('Proje silindi.');
+  };
+  $('#projForm', sheet).addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('#p-name', sheet).value.trim(); if (!name) return;
+    if (pid) put('projects', pid, { ...store.projects.get(pid), name, color: sheetState.color });
+    else { const id = newId(); put('projects', id, { name, color: sheetState.color, order: activeProjects().length, archived: false, created: Date.now() }); }
+    sheet.close();
+  });
+  sheet.showModal();
+  if (!pid) setTimeout(() => $('#p-name', sheet)?.focus(), 50);
+}
+let projSortables = [];
+function renderProjects() {
+  const view = $('#view-projects');
+  const drafts = {}; view.querySelectorAll('input[data-padd]').forEach(i => { if (i.value) drafts[i.dataset.padd] = i.value; });
+  const focused = document.activeElement?.dataset?.padd;
+  const scroll = view.querySelector('.board')?.scrollLeft || 0;
+  const ps = activeProjects(), archived = [...store.projects.values()].filter(p => p.archived);
+  ui.pDone = ui.pDone || {};
+  view.innerHTML = `<div class="ptop"><p class="intro" style="margin:0">Projeler günlük plandan bağımsızdır. Bir görevi başlatınca günlük listeye taşıyabilir ya da kopyalayabilirsin.</p>
+      <button class="btn primary" data-act="newProject">${ICON.plus} Yeni proje</button></div>
+    ${ps.length ? `<div class="board">${ps.map(pr => {
+      const all = projTasks(pr.id), open = all.filter(x => !x.done).sort((a, b) => (b.locked ? 1 : 0) - (a.locked ? 1 : 0) || byOrder(a, b)), done = all.filter(x => x.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0));
+      const pct = projProgress(pr.id);
+      return `<section class="pcol" data-pid="${pr.id}">
+        <div class="phead"><span class="dot" style="background:${pr.color}"></span><h2>${esc(pr.name)}</h2><span class="pct">${pct === null ? '' : '%' + pct}</span>
+          <button class="icon-btn" data-act="editProject" data-id="${pr.id}" aria-label="Projeyi düzenle">${SVG('<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>')}</button></div>
+        <div class="pbar"><i style="width:${pct || 0}%;background:${pr.color}"></i></div>
+        <div class="pmeta">${open.length} açık · ${done.length} bitti</div>
+        <form class="add padd" data-pid="${pr.id}"><input data-padd="${pr.id}" placeholder="Görev ekle…" maxlength="200" autocomplete="off" value="${esc(drafts[pr.id] || '')}"><button aria-label="Ekle">${ICON.plus}</button></form>
+        <ul class="tasks plist" data-pid="${pr.id}">${open.map(x => taskRow(x)).join('')}</ul>
+        ${done.length ? `<button class="pdone-btn" data-act="togglePDone" data-id="${pr.id}">${ui.pDone[pr.id] ? '▾' : '▸'} Tamamlandı (${done.length})</button>
+          ${ui.pDone[pr.id] ? `<ul class="done-list">${done.map(x => taskRow(x, { drag: false })).join('')}</ul>` : ''}` : ''}
+      </section>`;
+    }).join('')}</div>` : `<p class="empty">Henüz proje yok. "Yeni proje" ile ilk projeni oluştur, örneğin Atölye ya da Masa saati.</p>`}
+    ${archived.length ? `<div class="hsec"><h3>Arşiv</h3><div class="archive">${archived.map(pr => `<button data-act="editProject" data-id="${pr.id}"><span class="dot" style="background:${pr.color}"></span>${esc(pr.name)} <span class="muted">· ${projTasks(pr.id).length} görev</span></button>`).join('')}</div></div>` : ''}`;
+  const board = view.querySelector('.board'); if (board) board.scrollLeft = scroll;
+  if (focused) view.querySelector(`input[data-padd="${focused}"]`)?.focus();
+  projSortables.forEach(x => { try { x.destroy(); } catch {} }); projSortables = [];
+  if (window.Sortable) view.querySelectorAll('ul.plist').forEach(list => projSortables.push(Sortable.create(list, {
+    group: 'ptasks', handle: '.grip', animation: 150, draggable: '.task',
+    onStart() { dragging = true; },
+    onEnd(evt) {
+      dragging = false;
+      const id = evt.item.dataset.id, x = store.tasks.get(id), pid = evt.to.dataset.pid;
+      if (x) {
+        const ids = [...evt.to.children].map(li => li.dataset.id), i = ids.indexOf(id);
+        const prev = store.tasks.get(ids[i-1]), next = store.tasks.get(ids[i+1]);
+        const order = prev && next ? ((prev.order||0) + (next.order||0)) / 2 : prev ? (prev.order||0) + 1 : next ? (next.order||0) - 1 : 1;
+        put('tasks', id, { ...x, projectId: pid, order });
+      }
+      render();
+    },
+  })));
+}
+$('#view-projects').addEventListener('submit', e => {
+  const f = e.target.closest('form.padd'); if (!f) return;
+  e.preventDefault();
+  const inp = f.querySelector('input'), title = inp.value.trim(); if (!title) return;
+  inp.value = '';
+  const id = createTask({ title, section: 'project' });
+  put('tasks', id, { ...store.tasks.get(id), projectId: f.dataset.pid });
+  setTimeout(() => $(`#view-projects input[data-padd="${f.dataset.pid}"]`)?.focus(), 30);
+});
+
 /* ---------- recurring ---------- */
 function ruleMatches(r, k) {
   const d = dow(k);
@@ -632,7 +779,7 @@ function startReview(t) {
   const missedBy = {};
   for (const x of tasksArr()) if (!x.done && x.section === 'today' && (x.day || t) < t) missedBy[x.day] = (missedBy[x.day] || 0) + 1;
   for (const [d, n] of Object.entries(missedBy)) { const doc = dayDoc(d); if (doc.missed !== n) patchDay(d, dd => { dd.missed = n; }); }
-  for (const x of tasksArr()) if (x.done && (x.doneOn || t) < t) remove('tasks', x.id);
+  for (const x of tasksArr()) if (x.done && x.section !== 'project' && (x.doneOn || t) < t) remove('tasks', x.id);
   for (const r of store.recurring.values()) generateFor(r, t);
 
   const rank = x => (x.locked ? 0 : x.section === 'today' ? 1 : 2);
@@ -680,7 +827,7 @@ function renderReview() {
       const progLine = worked ? `<span class="rv-good">Dün ilerledi: %${base} → %${cur}</span>` : cur ? `<span class="chip prog">%${cur}</span>` : '';
       const btn = (v, l, cls = '') => `<button type="button" class="${cls}" data-act="choose" data-id="${x.id}" data-v="${v}" aria-pressed="${it.choice === v}">${l}</button>`;
       return `<li class="rv-item"><div class="title">${esc(x.title)}</div>
-        <div class="meta">${x.locked ? `<span class="chip" style="color:var(--lock)">${ICON.pin}Sabitli</span>` : ''}${progLine}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}
+        <div class="meta">${x.locked ? `<span class="chip" style="color:var(--lock)">${ICON.pin}Sabitli</span>` : ''}${progLine}${x.est ? `<span class="chip est-ui">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}
         ${worked ? '' : next >= 3 ? `<span class="rv-warn">Bu ${next}. ertelenişi olacak. Silmeyi ya da takvime yazmayı düşün.</span>` : next > 1 ? `<span>${next - 1} kez ertelendi</span>` : ''}</div>
         <div class="rv-choices">${btn('today','Bugüne al')}${btn('week','Bu hafta')}${btn('someday','Bir gün')}${btn('delete','Sil','del')}</div></li>`;
     };
@@ -703,7 +850,7 @@ function renderReview() {
     const cands = tasksArr().filter(x => x.section === 'today' && !x.done && !x.locked).sort(byOrder);
     const pick = (x, on, dis) => `<button type="button" class="pick" data-act="pick" data-id="${x.id}" aria-pressed="${on}" ${dis ? 'disabled' : ''}>
         <span class="box">${ICON.check}</span><span class="task-body"><span class="title">${esc(x.title)}</span>
-        <span class="meta">${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${dis ? `<span class="chip" style="color:var(--lock)">${ICON.pin}Zaten sabitli</span>` : ''}</span></span></button>`;
+        <span class="meta">${x.est ? `<span class="chip est-ui">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${dis ? `<span class="chip" style="color:var(--lock)">${ICON.pin}Zaten sabitli</span>` : ''}</span></span></button>`;
     el.innerHTML = `<div class="review-inner">${head}
       <h2>Bugün hangileri öne çıksın?</h2>
       <p class="lead">İstersen en önemli görevleri seç, listenin başına sabitlensin. Seçmeden de geçebilirsin.</p>
@@ -758,9 +905,9 @@ function taskRow(x, { drag = true } = {}) {
     <button class="check" data-act="toggle" data-id="${x.id}" aria-label="${x.done ? 'Tamamlanmadı olarak işaretle' : 'Tamamla'}" aria-pressed="${!!x.done}">${ICON.check}</button>
     <div class="col"><button class="task-body" data-act="edit" data-id="${x.id}">
       <span class="title">${x.locked && !x.done ? `<span class="pin-mark" aria-label="Sabitli">${ICON.pin}</span>` : ''}${esc(x.title)}</span>
-      ${(x.est || p || x.recurId || (x.subs || []).length || effProg(x)) && !x.done ? `<span class="meta">
-        ${progChip(x)}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}
-        ${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}
+      ${(x.est || p || x.recurId || (x.subs || []).length || effProg(x) || (x.projectId && x.section !== 'project')) && !x.done ? `<span class="meta">
+        ${progChip(x)}${x.est ? `<span class="chip est-ui">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}
+        ${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}${projChip(x)}
         ${p ? `<span class="chip${p >= 3 ? ' warn' : ''}">${p} kez ertelendi</span>` : ''}
       </span>` : ''}
       ${progBar(x)}
@@ -772,8 +919,10 @@ function render() {
   $('#dow').textContent = fmtDow(t);
   $('#dateTitle').textContent = fmtLong(t);
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === ui.tab)));
-  for (const v of ['today','recurring','history']) $('#view-' + v).hidden = ui.tab !== v;
+  for (const v of ['today','projects','recurring','history']) $('#view-' + v).hidden = ui.tab !== v;
+  $('#app').classList.toggle('wide', ui.tab === 'projects');
   if (ui.tab === 'today') renderToday();
+  if (ui.tab === 'projects') renderProjects();
   if (ui.tab === 'recurring') renderRecurring();
   if (ui.tab === 'history') renderHistory();
 }
@@ -784,7 +933,7 @@ function renderToday() {
   const remainMin = openToday.reduce((s, x) => s + remainEst(x), 0);
 
   $('#summary').innerHTML = !ready ? 'Yükleniyor…' :
-    `<b>${dd.done.length}</b> bitti · <b>${openToday.length}</b> görev bugün için açık${remainMin ? ` · kalan süre <b>${fmtMin(remainMin)}</b>` : ''}`;
+    `<b>${dd.done.length}</b> bitti · <b>${openToday.length}</b> görev bugün için açık${remainMin ? `<span class="est-ui"> · kalan süre <b>${fmtMin(remainMin)}</b></span>` : ''}`;
 
   const banner = $('#banner');
   const hasData = store.tasks.size + store.days.size > 5;
@@ -803,8 +952,7 @@ function renderToday() {
     $('#done-' + s).innerHTML = done.map(x => taskRow(x, { drag: false })).join('');
     const cnt = $('#count-' + s);
     if (s === 'today') {
-      const n = openToday.length, tl = m.todayLimit || 5;
-      cnt.textContent = `${n}/${tl}`; cnt.classList.toggle('over', n > tl);
+      cnt.textContent = openToday.length ? String(openToday.length) : '';
       if (!open.length && !done.length) list.innerHTML = '';
     } else cnt.textContent = open.length ? String(open.length) : '';
   }
@@ -817,7 +965,7 @@ function renderRecurring() {
     <p class="intro">Tekrarlayan görevler gününe denk gelince seçtiğin bölüme kendiliğinden eklenir. Bitmemiş eski kopyası varsa yenisiyle değiştirilir.</p>
     ${rules.length ? `<ul class="rules">${rules.map(r => `<li><button class="rule" data-act="editRule" data-id="${r.id}">
       <span class="dot ${r.section}"></span><span class="rule-body"><span class="title">${esc(r.title)}</span>
-      <span class="meta"><span>${ruleText(r)}</span><span>· ${SECTIONS[r.section]}</span>${(r.subs || []).length ? `<span class="chip">${ICON.list}${r.subs.length} alt görev</span>` : ''}${r.est ? `<span class="chip">${ICON.clock}${fmtMin(r.est)}</span>` : ''}</span></span></button></li>`).join('')}</ul>`
+      <span class="meta"><span>${ruleText(r)}</span><span>· ${SECTIONS[r.section]}</span>${(r.subs || []).length ? `<span class="chip">${ICON.list}${r.subs.length} alt görev</span>` : ''}${r.est ? `<span class="chip est-ui">${ICON.clock}${fmtMin(r.est)}</span>` : ''}</span></span></button></li>`).join('')}</ul>`
       : '<p class="empty">Henüz tekrarlayan görev yok. Örneğin "Spor · Pzt, Çar, Cum" ya da "Faturaları kontrol et · her ayın 1\'i".</p>'}
     <div><button class="btn primary" data-act="newRule">${ICON.plus} Tekrarlayan görev ekle</button></div>`;
 }
@@ -908,8 +1056,14 @@ function openTaskSheet(id) {
       <span id="f-prog-auto" class="muted" ${(x.subs || []).length ? '' : 'hidden'}>Alt görevlerden hesaplanıyor.</span></div>` : ''}
     <div class="field"><span>Alt görevler</span><div id="f-subs" class="sec"></div></div>
     <label class="field"><span>Not</span><textarea id="f-note" rows="2" maxlength="2000">${esc(x.note || '')}</textarea></label>
-    <div class="field"><span>Süre tahmini</span><div class="chips" id="f-est">${estChips(x.est)}</div></div>
-    <div class="field"><span>Bölüm</span><div class="seg" id="f-sec">${secSeg(x.section)}</div></div>
+    <div class="field est-ui"><span>Süre tahmini</span><div class="chips" id="f-est">${estChips(x.est)}</div></div>
+    ${x.section === 'project' ? `<div class="send"><b>Günlük listeye gönder</b>
+        <div class="seg" id="f-target">${secSeg('today')}</div>
+        <div class="row-btns"><button type="button" class="btn" data-send="move">Taşı</button><button type="button" class="btn" data-send="copy">Kopyala</button></div>
+        <span class="muted" style="font-size:calc(12.5px * var(--fs,1))">Taşı: görev projeden çıkar. Kopyala: proje görevi yerinde kalır, günlük listeye bir kopyası gider.</span></div>
+      ${activeProjects().length > 1 ? `<label class="field"><span>Proje</span><select id="f-proj">${activeProjects().map(pr => `<option value="${pr.id}" ${pr.id === x.projectId ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</select></label>` : ''}`
+    : `<div class="field"><span>Bölüm</span><div class="seg" id="f-sec">${secSeg(x.section)}</div></div>
+      ${activeProjects().length ? `<div class="send"><b>Projeye taşı</b><div class="row-btns"><select id="f-toproj">${activeProjects().map(pr => `<option value="${pr.id}" ${pr.id === x.projectId ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</select><button type="button" class="btn" data-toproj>Taşı</button></div></div>` : ''}`}
     ${x.recurId ? '<p class="muted" style="margin:0;font-size:13px">Tekrarlayan görev. Kuralı Tekrarlar sekmesinden değiştirebilirsin.</p>' : ''}
     ${(x.postponed || 0) ? `<p class="muted" style="margin:0;font-size:13px">${x.postponed} kez ertelendi.</p>` : ''}
     <div class="sheet-actions"><span class="lead">
@@ -925,7 +1079,15 @@ function openTaskSheet(id) {
     if (m) { m.hidden = !!has; a.hidden = !has; }
   }, 0));
   wirePress($('#f-est', sheet), 'est', v => sheetState.est = Number(v));
-  wirePress($('#f-sec', sheet), 'sec', v => sheetState.section = v);
+  if ($('#f-sec', sheet)) wirePress($('#f-sec', sheet), 'sec', v => sheetState.section = v);
+  sheetState.target = 'today';
+  if ($('#f-target', sheet)) wirePress($('#f-target', sheet), 'sec', v => sheetState.target = v);
+  sheet.querySelectorAll('[data-send]').forEach(b => b.onclick = () => {
+    const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur);
+    sendToDaily(store.tasks.get(id), sheetState.target, b.dataset.send === 'copy'); sheet.close();
+  });
+  const tp = sheet.querySelector('[data-toproj]');
+  if (tp) tp.onclick = () => { const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur); sendToProject(store.tasks.get(id), $('#f-toproj', sheet).value); sheet.close(); };
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
   const pb = sheet.querySelector('[data-pin]');
   if (pb) pb.onclick = () => { const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur); pinTask(store.tasks.get(id), !cur.locked); sheet.close(); };
@@ -940,7 +1102,9 @@ function openTaskSheet(id) {
 function saveTaskFields(x) {
   const title = $('#f-title', sheet).value.trim() || x.title;
   const next = { ...x, title, note: $('#f-note', sheet).value.trim(), est: sheetState.est, subs: cleanSubs(), prog: sheetState.prog };
-  if (sheetState.section !== x.section) {
+  const fp = $('#f-proj', sheet);
+  if (fp && x.section === 'project' && fp.value !== x.projectId) Object.assign(next, { projectId: fp.value, order: endOrder('project') });
+  if (x.section !== 'project' && sheetState.section !== x.section) {
     const t = today();
     Object.assign(next, { section: sheetState.section, order: endOrder(sheetState.section), day: sheetState.section === 'today' ? t : x.day, weekOf: sheetState.section === 'week' ? mondayOf(t) : x.weekOf });
   }
@@ -963,7 +1127,7 @@ function openRuleSheet(id) {
       ${DOW_SHORT.map((d, i) => `<button type="button" data-day="${i}" aria-pressed="${sheetState.days.has(i)}">${d}</button>`).join('')}</div></div>
     <label class="field" id="r-dom-wrap" ${r.type === 'monthly' ? '' : 'hidden'}><span>Ayın kaçıncı günü?</span><input id="r-dom" type="number" min="1" max="31" value="${r.dom || 1}" inputmode="numeric"></label>
     <div class="field"><span>Hangi bölüme düşsün?</span><div class="seg" id="r-sec">${secSeg(r.section)}</div></div>
-    <div class="field"><span>Süre tahmini</span><div class="chips" id="r-est">${estChips(r.est)}</div></div>
+    <div class="field est-ui"><span>Süre tahmini</span><div class="chips" id="r-est">${estChips(r.est)}</div></div>
     <div class="sheet-actions"><span class="lead">${id ? '<button type="button" class="btn danger" data-del>Sil</button>' : ''}</span>
       <button type="submit" class="btn primary">Kaydet</button></div>
   </form>`;
@@ -1002,11 +1166,8 @@ function openRuleSheet(id) {
 function openSettings() {
   const m = meta();
   sheetState = { kind:'settings' };
-  const step = (key, v, lo, hi, label, hint) => `<div class="set-row"><div><b>${label}</b><p>${hint}</p></div>
-    <div class="stepper"><button type="button" data-step="${key}" data-d="-1" aria-label="Azalt">−</button><output id="o-${key}">${v}</output><button type="button" data-step="${key}" data-d="1" aria-label="Artır">+</button></div></div>`;
   sheet.innerHTML = `<div class="sheet-body">
     <div class="sheet-head"><h3>Ayarlar</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
-    ${step('todayLimit', m.todayLimit || 5, 3, 10, '"Bugün mutlaka" sınırı', 'Aşınca uyarı çıkar, istersen yine de eklersin.')}
     <div class="backup" id="apBox">
       <h4>Görünüm</h4>
       <p>Değişiklikler hemen uygulanır. Bu ayarlar sadece bu cihazda geçerli, telefon ve bilgisayar ayrı ayarlanabilir.</p>
@@ -1014,6 +1175,7 @@ function openSettings() {
       <div class="field"><span>Satır aralığı</span><div class="seg" id="apDen">${[['compact','Sıkı'],['normal','Normal'],['relaxed','Ferah']].map(([v, l]) => `<button type="button" data-den="${v}" aria-pressed="${(ui.density || 'normal') === v}">${l}</button>`).join('')}</div></div>
       <div class="field"><span>Tema</span><div class="seg" id="apTh">${[['system','Sistem'],['light','Açık'],['dark','Koyu']].map(([v, l]) => `<button type="button" data-th="${v}" aria-pressed="${(ui.theme || 'system') === v}">${l}</button>`).join('')}</div></div>
       <div class="field"><span>Vurgu rengi</span><div class="swatches" id="apAcc">${Object.entries(ACCENTS).map(([k, a]) => `<button type="button" data-acc="${k}" style="background:${a[0]}" aria-label="${a[2]}" title="${a[2]}" aria-pressed="${(ui.accent || 'clay') === k}"></button>`).join('')}</div></div>
+      <div class="field"><span>Süre alanı</span><div class="seg" id="apSe">${[['on','Göster'],['off','Gizle']].map(([v, l]) => `<button type="button" data-se="${v}" aria-pressed="${(ui.showEst === false ? 'off' : 'on') === v}">${l}</button>`).join('')}</div></div>
       <div class="field"><span>Başlık yazı tipi</span><div class="seg" id="apHf">${[['serif','Tırnaklı'],['sans','Düz']].map(([v, l]) => `<button type="button" data-hf="${v}" aria-pressed="${(ui.headFont || 'serif') === v}">${l}</button>`).join('')}</div></div>
       <div class="row-btns"><button type="button" class="btn small" id="apReset">Varsayılana dön</button></div>
     </div>
@@ -1027,7 +1189,6 @@ function openSettings() {
     <div class="backup drive" id="driveBox"></div>
     <div class="backup"><h4>Telefona kurmak</h4><p>iPhone: Safari'de Paylaş → Ana Ekrana Ekle. Android: Chrome'da ⋮ → Ana ekrana ekle (ya da Uygulamayı yükle). Kurulunca internetsiz de çalışır.</p></div>
   </div>`;
-  const bounds = { todayLimit:[3,10] };
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
   wireBackup();
   drawDrive();
@@ -1038,15 +1199,11 @@ function openSettings() {
   wirePress($('#apTh', sheet), 'th', v => setUi('theme', v));
   wirePress($('#apAcc', sheet), 'acc', v => setUi('accent', v));
   wirePress($('#apHf', sheet), 'hf', v => setUi('headFont', v));
+  wirePress($('#apSe', sheet), 'se', v => { setUi('showEst', v === 'on'); scheduleRender(); });
   $('#apReset', sheet).onclick = () => {
-    for (const k of ['fs', 'density', 'theme', 'accent', 'headFont']) delete ui[k];
+    for (const k of ['fs', 'density', 'theme', 'accent', 'headFont', 'showEst']) delete ui[k];
     saveUi(); applyAppearance(); sheet.close(); openSettings(); toast('Görünüm varsayılana döndü.');
   };
-  sheet.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
-    const k = b.dataset.step, [lo, hi] = bounds[k];
-    const v = Math.min(hi, Math.max(lo, (meta()[k] || 5) + Number(b.dataset.d)));
-    putMeta({ [k]: v }); $('#o-' + k, sheet).textContent = v;
-  }));
   sheet.showModal();
 }
 
@@ -1084,7 +1241,7 @@ function drawDrive() {
 function buildBackup() {
   const strip = m => [...m.values()].map(x => { const c = { ...x }; return c; });
   return JSON.stringify({ app: 'bugun-mutlaka', version: 1, exportedAt: new Date().toISOString(),
-    meta: store.meta, tasks: strip(store.tasks), recurring: strip(store.recurring), days: strip(store.days) }, null, 1);
+    meta: store.meta, tasks: strip(store.tasks), recurring: strip(store.recurring), days: strip(store.days), projects: strip(store.projects) }, null, 1);
 }
 function wireBackup() {
   const json = () => buildBackup();
@@ -1133,7 +1290,8 @@ function wireBackup() {
 }
 function restoreBackup(d) {
   const idsOf = arr => new Set((arr || []).map(x => x.id).filter(Boolean));
-  for (const coll of ['tasks', 'recurring', 'days']) {
+  for (const coll of ['tasks', 'recurring', 'days', 'projects']) {
+    if (!Array.isArray(d[coll])) continue;
     const keep = idsOf(d[coll]);
     for (const id of [...store[coll].keys()]) if (!keep.has(id)) remove(coll, id);
     for (const x of d[coll] || []) if (x && x.id) put(coll, x.id, x);
@@ -1157,14 +1315,11 @@ document.addEventListener('click', e => {
     case 'edit': if (x) openTaskSheet(x.id); break;
     case 'newRule': openRuleSheet(null); break;
     case 'openSettings': openSettings(); break;
+    case 'newProject': openProjectSheet(null); break;
+    case 'editProject': openProjectSheet(b.dataset.id); break;
+    case 'togglePDone': ui.pDone = ui.pDone || {}; ui.pDone[b.dataset.id] = !ui.pDone[b.dataset.id]; saveUi(); renderProjects(); break;
     case 'editRule': openRuleSheet(b.dataset.id); break;
     case 'selDay': ui.selDay = b.dataset.k; saveUi(); renderHistory(); break;
-    case 'forceAdd': case 'toWeek': {
-      const w = $('#warn-today'); const p = w._pending; w.hidden = true; if (!p) break;
-      createTask({ ...p, section: b.dataset.act === 'toWeek' ? 'week' : 'today' });
-      if (b.dataset.act === 'toWeek') toast('Bu haftaya eklendi.');
-      break;
-    }
   }
 });
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { ui.tab = b.dataset.tab; saveUi(); render(); }));
@@ -1181,12 +1336,6 @@ document.querySelectorAll('form.add').forEach(f => {
     const title = inp.value.trim(); if (!title) return;
     const p = { title, est: Number(sel.value) || 0 };
     inp.value = ''; sel.value = '0';
-    if (s === 'today' && activeToday() >= (meta().todayLimit || 5)) {
-      const w = $('#warn-today'); w._pending = p; w.hidden = false;
-      w.innerHTML = `<span>"Bugün mutlaka" zaten ${activeToday()} görev. Bu gerçekten bugün mü olmalı?</span>
-        <div class="row-btns"><button class="btn small" data-act="toWeek">Bu haftaya ekle</button><button class="btn small" data-act="forceAdd">Yine de bugüne ekle</button></div>`;
-      return;
-    }
     createTask({ ...p, section: s });
   });
 });
@@ -1206,7 +1355,6 @@ function initSortable() {
           const prev = store.tasks.get(ids[i-1]), next = store.tasks.get(ids[i+1]);
           const order = prev && next ? ((prev.order||0) + (next.order||0)) / 2 : prev ? (prev.order||0) + 1 : next ? (next.order||0) - 1 : 1;
           if (to !== x.section || order !== x.order) moveTask(x, to, order);
-          if (to === 'today' && x.section !== 'today' && activeToday() > (meta().todayLimit || 5)) toast('"Bugün mutlaka" sınırı aşıldı. Bir tanesi ertelenebilir mi?');
         }
         render();
       },
