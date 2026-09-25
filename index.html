@@ -52,6 +52,16 @@ svg{width:18px;height:18px;flex:none}
 .app{max-width:640px;margin:0 auto;padding-block:8px 80px}
 .app.wide{max-width:1240px}
 .no-est .est-ui{display:none!important}
+/* date planning */
+.dline{display:flex;align-items:center;gap:2px;position:relative}
+.dtitle{border:0;background:none;padding:0 4px;margin:2px 0 0;font-family:var(--display);font-size:calc(30px * var(--fs,1));line-height:1.1;font-weight:700;color:var(--ink);letter-spacing:-.01em;cursor:pointer;border-radius:8px}
+.dtitle:hover{background:var(--surface-2)}
+.dnav{border:0;background:none;width:30px;height:34px;border-radius:8px;font-size:22px;color:var(--muted);padding:0}
+.dnav:hover:not(:disabled){background:var(--surface-2);color:var(--ink)}
+.dnav:disabled{opacity:.25}
+#dPick{position:absolute;left:30px;top:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0}
+.plan-banner{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--lock-soft);border:1px solid color-mix(in srgb,var(--lock) 40%,transparent);border-radius:12px;padding:10px 12px;font-size:calc(14px * var(--fs,1))}
+@media (max-width:420px){ .dtitle{font-size:calc(26px * var(--fs,1))} }
 /* groups */
 .ghead{list-style:none;display:flex;align-items:center;gap:8px;padding:10px 4px 2px;font-size:calc(12px * var(--fs,1));letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--muted);user-select:none}
 .ghead:first-child{padding-top:2px}
@@ -347,7 +357,9 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
 <div class="app" id="app">
   <header class="top">
     <div class="datebar">
-      <div><p class="eyebrow" id="dow"></p><h1 id="dateTitle"></h1></div>
+      <div class="dhead"><p class="eyebrow" id="dow"></p>
+        <div class="dline"><button class="dnav" id="dPrev" aria-label="Önceki gün">‹</button><button class="dtitle" id="dateTitle" aria-label="Tarih seç"></button><button class="dnav" id="dNext" aria-label="Sonraki gün">›</button>
+          <input type="date" id="dPick" aria-label="Tarih seç" tabindex="-1"></div></div>
       <div class="top-actions">
         <button class="sync" id="sync" data-s="local" type="button">Bu cihaz</button>
         <button class="icon-btn" id="settingsBtn" aria-label="Ayarlar"></button>
@@ -367,7 +379,7 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
       <p class="summary" id="summary"></p>
 
       <section class="sec" data-sec="today">
-        <div class="sec-head"><span class="dot"></span><h2>Bugün mutlaka</h2><span class="count" id="count-today"></span></div>
+        <div class="sec-head"><span class="dot"></span><h2 id="todayTitle">Bugün mutlaka</h2><span class="count" id="count-today"></span></div>
         <ul class="tasks" data-section="today" id="list-today"></ul>
                 <form class="add" data-section="today"><input id="add-today" placeholder="Bugün mutlaka yapılacak…" maxlength="200" autocomplete="off"><select id="est-today" class="est-ui" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
         <ul class="done-list" id="done-today"></ul>
@@ -660,7 +672,7 @@ function onData(kind, payload) {
     if (!store.meta) putMeta({ lastReview: today() });
   }
   if (ready) maybeReview();
-  if (ready && pendingImport && !review) setTimeout(showImport, 50);
+  if (ready && pendingImport && !review && !sheet.open) setTimeout(showImport, 50);
   scheduleRender();
 }
 
@@ -716,10 +728,10 @@ function patchDay(d, fn) { const doc = structuredClone(dayDoc(d)); delete doc.id
 /* ---------- task operations ---------- */
 function endOrder(sec) { let m = 0; for (const x of store.tasks.values()) if (x.section === sec && (x.order||0) > m) m = x.order; return m + 1; }
 function createTask(p) {
-  const t = today(), id = newId();
+  const t = today(), id = newId(), day = p.day || t;
   put('tasks', id, {
     title: p.title, note: p.note || '', est: p.est || 0, section: p.section,
-    order: p.order ?? endOrder(p.section), day: t, weekOf: mondayOf(t),
+    order: p.order ?? endOrder(p.section), day, weekOf: mondayOf(t),
     locked: false, lockedOn: null, done: false, doneOn: null, doneAt: null,
     postponed: 0, created: Date.now(), recurId: p.recurId || null,
     subs: (p.subs || []).map(x => ({ id: newId(), t: x.t, d: false })),
@@ -728,7 +740,7 @@ function createTask(p) {
 }
 function moveTask(x, section, order) {
   const t = today();
-  put('tasks', x.id, { ...x, section, order: order ?? endOrder(section), day: section === 'today' ? t : x.day, weekOf: section === 'week' ? mondayOf(t) : x.weekOf });
+  put('tasks', x.id, { ...x, section, order: order ?? endOrder(section), day: section === 'today' ? vd() : x.day, weekOf: section === 'week' ? mondayOf(t) : x.weekOf });
 }
 function toggleDone(x) {
   const t = today();
@@ -761,7 +773,13 @@ function recordProgress(before, after) {
     else d.prog.push({ id: after.id, t: after.title, a, b });
   });
 }
-const activeToday = () => tasksArr().filter(x => x.section === 'today' && !x.done).length;
+const activeToday = () => tasksArr().filter(x => x.section === 'today' && !x.done && (x.day || today()) <= today()).length;
+let viewDate = null;
+const vd = () => viewDate && viewDate > today() ? viewDate : today();
+const dayLabel = k => { const t = today(); return k === t ? 'Bugün' : k === addDays(t, 1) ? 'Yarın' : fmtDow(k).charAt(0).toLocaleUpperCase('tr') + fmtDow(k).slice(1); };
+// Görev "Bugün mutlaka" listesinde o gün görünür mü? (geçmiş günden kalanlar sabah ekranına kadar bugünde durur)
+const onDay = (x, k) => k === today() ? (x.day || k) <= k : x.day === k;
+function setViewDate(k) { viewDate = k && k > today() ? k : null; if (ui.tab !== 'today') { ui.tab = 'today'; saveUi(); } render(); }
 
 /* ---------- groups ---------- */
 const groupsSorted = () => [...store.groups.values()].sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -1097,8 +1115,11 @@ function taskRow(x, { drag = true } = {}) {
 }
 function render() {
   const t = today();
-  $('#dow').textContent = fmtDow(t);
-  $('#dateTitle').textContent = fmtLong(t);
+  const v = vd();
+  $('#dow').textContent = v === t ? fmtDow(t) : `${dayLabel(v)} · planlama`;
+  $('#dateTitle').textContent = fmtLong(v);
+  $('#dPrev').disabled = v <= t;
+  $('#dPick').min = t; $('#dPick').value = v;
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === ui.tab)));
   for (const v of ['today','projects','recurring','history']) $('#view-' + v).hidden = ui.tab !== v;
   $('#app').classList.toggle('wide', ui.tab === 'projects');
@@ -1109,18 +1130,22 @@ function render() {
 }
 function renderToday() {
   const t = today(), all = tasksArr(), m = meta();
-  const dd = dayDoc(t);
-  const openToday = all.filter(x => x.section === 'today' && !x.done);
+  const dd = dayDoc(t), v = vd(), future = v !== t;
+  const openToday = all.filter(x => x.section === 'today' && !x.done && onDay(x, v));
   const remainMin = openToday.reduce((s, x) => s + remainEst(x), 0);
 
-  $('#summary').innerHTML = !ready ? 'Yükleniyor…' :
-    `<b>${dd.done.length}</b> bitti · <b>${openToday.length}</b> görev bugün için açık${remainMin ? `<span class="est-ui"> · kalan süre <b>${fmtMin(remainMin)}</b></span>` : ''}`;
+  $('#summary').innerHTML = !ready ? 'Yükleniyor…' : future
+    ? `<b>${openToday.length}</b> görev ${dayLabel(v).toLocaleLowerCase('tr')} için planlandı${remainMin ? `<span class="est-ui"> · toplam <b>${fmtMin(remainMin)}</b></span>` : ''}`
+    : `<b>${dd.done.length}</b> bitti · <b>${openToday.length}</b> görev bugün için açık${remainMin ? `<span class="est-ui"> · kalan süre <b>${fmtMin(remainMin)}</b></span>` : ''}`;
 
   const banner = $('#banner');
-  banner.hidden = true;
+  banner.hidden = !future;
+  banner.innerHTML = future ? `<div class="plan-banner"><span><b>${dayLabel(v)} için planlıyorsun.</b> Buraya eklediklerin ${fmtLong(v)} sabahı "Bugün mutlaka"da olur, ertelenmiş sayılmaz.</span><button class="btn small" data-act="goToday">Bugüne dön</button></div>` : '';
+  $('#todayTitle').textContent = `${dayLabel(v)} mutlaka`;
+  $('#add-today').placeholder = `${dayLabel(v)} mutlaka yapılacak…`;
 
   for (const s of ['today','week','someday']) {
-    const secTasks = all.filter(x => x.section === s);
+    const secTasks = all.filter(x => x.section === s && (s !== 'today' || (x.done ? !future : onDay(x, v))));
     const open = secTasks.filter(x => !x.done).sort((a, b) => (b.locked ? 1 : 0) - (a.locked ? 1 : 0) || byOrder(a, b));
     const done = secTasks.filter(x => x.done).sort((a, b) => (a.doneAt||0) - (b.doneAt||0));
     const list = $('#list-' + s);
@@ -1170,7 +1195,7 @@ function buildReport() {
   }
   const missed = new Map();
   for (const k of days) { if (k === t) continue; for (const e of dayDoc(k).missedList || []) if (!doneIds.has(e.id) && ok(e.pj)) missed.set(e.id, e); }
-  if (days.includes(t)) for (const x of tasksArr()) if (x.section === 'today' && !x.done && ok(x.projectId || null)) missed.set(x.id, { id: x.id, t: x.title, p: effProg(x), pj: x.projectId || null, g: x.groupId || null });
+  if (days.includes(t)) for (const x of tasksArr()) if (x.section === 'today' && !x.done && (x.day || t) <= t && ok(x.projectId || null)) missed.set(x.id, { id: x.id, t: x.title, p: effProg(x), pj: x.projectId || null, g: x.groupId || null });
   const inProg = [];
   for (const e of prog.values()) if (e.b > 0) inProg.push(e);
   for (const e of missed.values()) if (!prog.has(e.id) && e.p > 0) inProg.push({ id: e.id, t: e.t, a: null, b: e.p, pj: e.pj, g: e.g });
@@ -1401,6 +1426,7 @@ function openTaskSheet(id) {
     ${(x.postponed || 0) ? `<p class="muted" style="margin:0;font-size:13px">${x.postponed} kez ertelendi.</p>` : ''}
     <div class="sheet-actions"><span class="lead">
       ${!x.done ? `<button type="button" class="btn pinb" data-pin>${ICON.pin} ${x.locked ? 'Sabitlemeyi kaldır' : 'Başa sabitle'}</button>` : ''}
+      ${!x.done && x.section !== 'project' ? ((x.section === 'today' && (x.day || today()) > today()) ? '<button type="button" class="btn" data-day="today">Bugüne al</button>' : '<button type="button" class="btn" data-day="tomorrow">Yarına at</button>') : ''}
       <button type="button" class="btn danger" data-del>Sil</button></span>
       <button type="submit" class="btn primary">Kaydet</button></div>
   </form>`;
@@ -1439,6 +1465,13 @@ function openTaskSheet(id) {
   const tp = sheet.querySelector('[data-toproj]');
   if (tp) tp.onclick = () => { const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur); sendToProject(store.tasks.get(id), $('#f-toproj', sheet).value); sheet.close(); };
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
+  const db = sheet.querySelector('[data-day]');
+  if (db) db.onclick = () => {
+    const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur);
+    const t = today(), k = db.dataset.day === 'today' ? t : addDays(t, 1), c2 = store.tasks.get(id);
+    put('tasks', id, { ...c2, section: 'today', day: k, order: c2.section === 'today' ? c2.order : endOrder('today') });
+    sheet.close(); toast(k === t ? 'Bugüne alındı.' : 'Yarına atıldı. Ertelenmiş sayılmaz.');
+  };
   const pb = sheet.querySelector('[data-pin]');
   if (pb) pb.onclick = () => { const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur); pinTask(store.tasks.get(id), !cur.locked); sheet.close(); };
   const del = sheet.querySelector('[data-del]');
@@ -1456,7 +1489,7 @@ function saveTaskFields(x) {
   if (fp && x.section === 'project' && fp.value !== x.projectId) Object.assign(next, { projectId: fp.value, order: endOrder('project') });
   if (x.section !== 'project' && sheetState.section !== x.section) {
     const t = today();
-    Object.assign(next, { section: sheetState.section, order: endOrder(sheetState.section), day: sheetState.section === 'today' ? t : x.day, weekOf: sheetState.section === 'week' ? mondayOf(t) : x.weekOf });
+    Object.assign(next, { section: sheetState.section, order: endOrder(sheetState.section), day: sheetState.section === 'today' ? vd() : x.day, weekOf: sheetState.section === 'week' ? mondayOf(t) : x.weekOf });
   }
   put('tasks', x.id, next);
   recordProgress(x, next);
@@ -1732,6 +1765,7 @@ document.addEventListener('click', e => {
     case 'edit': if (x) openTaskSheet(x.id); break;
     case 'newRule': openRuleSheet(null); break;
     case 'openSettings': openSettings(); break;
+    case 'goToday': setViewDate(null); break;
     case 'gToggle': ui.gClosed = ui.gClosed || {}; ui.gClosed[b.dataset.k] = !ui.gClosed[b.dataset.k]; saveUi(); renderToday(); break;
     case 'gAdd': { const g = store.groups.get(b.dataset.gid); const inp = $('#add-' + b.dataset.sec); if (g && inp) { inp.value = '#' + gslug(g.name) + ' '; inp.focus(); } break; }
     case 'newProject': openProjectSheet(null); break;
@@ -1746,13 +1780,21 @@ document.addEventListener('click', e => {
 });
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => { ui.tab = b.dataset.tab; saveUi(); render(); }));
 $('#settingsBtn').innerHTML = ICON.gear;
+$('#dPrev').addEventListener('click', () => setViewDate(addDays(vd(), -1)));
+$('#dNext').addEventListener('click', () => setViewDate(addDays(vd(), 1)));
+$('#dateTitle').addEventListener('click', () => { const d = $('#dPick'); try { d.showPicker(); } catch { d.style.pointerEvents = 'auto'; d.focus(); d.click(); } });
+$('#dPick').addEventListener('change', e => { if (e.target.value) setViewDate(e.target.value); });
 $('#settingsBtn').addEventListener('click', openSettings);
 $('#sync').addEventListener('click', () => { if (sync.enabled) sync.run(true); else openSettings(); });
 for (const s of ['today','week','someday']) $('#est-' + s).innerHTML = EST.map(([v, l]) => `<option value="${v}">${v ? l : 'Süre'}</option>`).join('');
 function addLines(text, section) {
   const lines = String(text).split(/\r?\n/).map(l => l.replace(/^\s*([-*•]|\d+[.)]|\[ ?\])\s*/, '').trim()).filter(Boolean);
-  for (const l of lines) { const tg = parseTagged(l); const id = createTask({ title: tg.title, section }); if (tg.groupId) put('tasks', id, { ...store.tasks.get(id), groupId: tg.groupId }); }
-  return lines.length;
+  let added = 0, skipped = 0;
+  for (const l of lines) {
+    const probe = l.replace(/(^|\s)#[\p{L}\p{N}_-]+/u, ' ').replace(/\s+/g, ' ').trim();
+    if (tasksArr().some(x => !x.done && x.section === section && gslug(x.title) === gslug(probe))) { skipped++; continue; }
+    added++; const tg = parseTagged(l); const id = createTask({ title: tg.title, section, day: section === 'today' ? vd() : undefined }); if (tg.groupId) put('tasks', id, { ...store.tasks.get(id), groupId: tg.groupId }); }
+  return { added, skipped };
 }
 document.querySelectorAll('form.add').forEach(f => {
   f.querySelector('button').innerHTML = ICON.plus;
@@ -1760,8 +1802,8 @@ document.querySelectorAll('form.add').forEach(f => {
     const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
     if (!/\n/.test(text.trim())) return;
     e.preventDefault();
-    const n = addLines(text, f.dataset.section);
-    toast(`${n} görev eklendi.`);
+    const r = addLines(text, f.dataset.section);
+    toast(`${r.added} görev eklendi.${r.skipped ? ` ${r.skipped} tanesi zaten listede olduğu için atlandı.` : ''}`);
   });
   f.addEventListener('submit', e => {
     e.preventDefault();
@@ -1769,7 +1811,7 @@ document.querySelectorAll('form.add').forEach(f => {
     const title = inp.value.trim(); if (!title) return;
     const tg = parseTagged(title), est = Number(sel.value) || 0;
     inp.value = ''; sel.value = '0';
-    const id = createTask({ title: tg.title, est, section: s });
+    const id = createTask({ title: tg.title, est, section: s, day: s === 'today' ? vd() : undefined });
     if (tg.groupId) put('tasks', id, { ...store.tasks.get(id), groupId: tg.groupId });
   });
 });
@@ -1803,6 +1845,12 @@ function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.ad
 
 setInterval(() => { if (today() !== currentDay) { currentDay = today(); maybeReview(); } scheduleRender(); }, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (sync.enabled && sync.tokenOk()) sync.run(false); maybeReview(); scheduleRender(); } });
+window.addEventListener('hashchange', () => {
+  readImportHash();
+  const r = sync.handleReturn();
+  if (r === 'cid') { setSync(sync.initialStatus()); toast("Client ID alındı. Şimdi üstteki \"Drive'a bağlan\"a dokun."); }
+  if (ready && pendingImport && !review) { if (sheet.open) sheet.close(); showImport(); }
+});
 setInterval(() => { if (!document.hidden && sync.enabled && sync.tokenOk()) sync.run(false); }, 90000);
 window.addEventListener('online', () => { if (sync.enabled && sync.tokenOk()) sync.run(false); });
 
