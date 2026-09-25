@@ -1046,7 +1046,8 @@ function openSettings() {
     <div class="backup">
       <h4>Yedekleme</h4>
       <p>${m.lastBackup ? `Son yedek: ${fmtLong(m.lastBackup)} (${diffDays(m.lastBackup, today()) === 0 ? 'bugün' : diffDays(m.lastBackup, today()) + ' gün önce'})` : 'Henüz yedek almadın.'} Yedek, tüm görevlerini, tekrarlarını ve geçmişini tek bir .json dosyasına kaydeder.</p>
-      <div class="row-btns"><button type="button" class="btn" id="bkSave">Yedeği indir</button><button type="button" class="btn" id="bkCopy">Panoya kopyala</button><label class="btn" for="bkFile" style="cursor:pointer">Yedekten geri yükle</label><input type="file" id="bkFile" accept=".json,application/json" hidden></div>
+      <div class="row-btns"><button type="button" class="btn" id="bkSave">Yedeği indir</button><button type="button" class="btn" id="bkCopy">Panoya kopyala</button><label class="btn" for="bkFile" style="cursor:pointer">Dosyadan geri yükle</label><input type="file" id="bkFile" accept=".json,.txt,application/json,text/plain" hidden><button type="button" class="btn" id="bkPasteBtn">Yapıştırarak geri yükle</button></div>
+      <div class="field" id="bkPasteBox" hidden><span>Yedeğin metnini buraya yapıştır (Claude'daki uygulamada "Panoya kopyala" ile kopyalanan metin)</span><textarea id="bkPaste" rows="4" spellcheck="false"></textarea><div class="row-btns"><button type="button" class="btn primary" id="bkPasteGo">Devam</button></div></div>
       <div class="confirm" id="bkConfirm" hidden></div>
     </div>
     <div class="backup drive" id="driveBox"></div>
@@ -1122,21 +1123,28 @@ function wireBackup() {
     try { navigator.clipboard.writeText(text).then(ok, () => toast('Kopyalanamadı. "Yedeği indir"i dene.')); }
     catch { toast('Kopyalanamadı. "Yedeği indir"i dene.'); }
   };
+  const askRestore = text => {
+    let d;
+    try { d = JSON.parse(String(text).trim()); } catch { toast('Yedek okunamadı. Metnin tamamını kopyaladığından emin ol.'); return; }
+    if (!d || d.app !== 'bugun-mutlaka' || !Array.isArray(d.tasks)) { toast('Bu bir Bugün Mutlaka yedeği değil.'); return; }
+    const box = $('#bkConfirm', sheet); box.hidden = false;
+    const when = d.exportedAt ? fmtLong(keyOf(new Date(d.exportedAt))) + ' tarihli yedek' : 'Yedek';
+    box.innerHTML = `<span><b>${when}:</b> ${d.tasks.length} görev, ${(d.recurring || []).length} tekrar, ${(d.days || []).length} günlük geçmiş. Şu anki verilerin <b>bu yedekle değiştirilecek</b>.</span>
+      <div class="row-btns"><button type="button" class="btn primary" id="bkYes">Geri yükle</button><button type="button" class="btn" id="bkNo">Vazgeç</button></div>`;
+    $('#bkNo', sheet).onclick = () => { box.hidden = true; $('#bkFile', sheet).value = ''; };
+    $('#bkYes', sheet).onclick = () => { restoreBackup(d); box.hidden = true; sheet.close(); };
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toast('Yedek okundu. Aşağıdaki "Geri yükle" ile onayla.');
+  };
   $('#bkFile', sheet).onchange = e => {
     const f = e.target.files && e.target.files[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = () => {
-      let d;
-      try { d = JSON.parse(r.result); } catch { toast('Bu dosya okunamadı. Uygulamadan alınmış bir .json yedeği seç.'); return; }
-      if (!d || d.app !== 'bugun-mutlaka' || !Array.isArray(d.tasks)) { toast('Bu dosya bir Bugün Mutlaka yedeği değil.'); return; }
-      const box = $('#bkConfirm', sheet); box.hidden = false;
-      box.innerHTML = `<span><b>${fmtLong(keyOf(new Date(d.exportedAt)))}</b> tarihli yedek: ${d.tasks.length} görev, ${(d.recurring || []).length} tekrar, ${(d.days || []).length} günlük geçmiş. Şu anki verilerin <b>bu yedekle değiştirilecek</b>.</span>
-        <div class="row-btns"><button type="button" class="btn primary" id="bkYes">Geri yükle</button><button type="button" class="btn" id="bkNo">Vazgeç</button></div>`;
-      $('#bkNo', sheet).onclick = () => { box.hidden = true; e.target.value = ''; };
-      $('#bkYes', sheet).onclick = () => { restoreBackup(d); box.hidden = true; sheet.close(); };
-    };
+    r.onload = () => askRestore(r.result);
+    r.onerror = () => toast('Dosya açılamadı. "Yapıştırarak geri yükle"yi dene.');
     r.readAsText(f);
   };
+  $('#bkPasteBtn', sheet).onclick = () => { const b = $('#bkPasteBox', sheet); b.hidden = !b.hidden; if (!b.hidden) $('#bkPaste', sheet).focus(); };
+  $('#bkPasteGo', sheet).onclick = () => { const v = $('#bkPaste', sheet).value; if (!v.trim()) { toast('Önce yedek metnini yapıştır.'); return; } askRestore(v); };
 }
 function restoreBackup(d) {
   const idsOf = arr => new Set((arr || []).map(x => x.id).filter(Boolean));
