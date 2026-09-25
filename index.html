@@ -270,8 +270,10 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
 .chips,.seg{display:flex;flex-wrap:wrap;gap:6px}
 .chips button,.seg button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 12px;font-size:calc(13.5px * var(--fs,1));color:var(--ink)}
 .chips button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.sheet-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.sheet-actions .lead{margin-right:auto;display:flex;gap:8px;flex-wrap:wrap}
+.sheet-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.sheet-actions .btn{padding:6px 11px;font-size:calc(13.5px * var(--fs,1));border-radius:9px}
+.sheet-actions .btn svg{width:15px;height:15px}
+.sheet-actions .lead{margin-right:auto;display:flex;gap:6px;flex-wrap:wrap}
 .confirm{background:var(--lock-soft);border-radius:12px;padding:12px;font-size:calc(14px * var(--fs,1));display:flex;flex-direction:column;gap:10px}
 .lock-note{margin:0;background:var(--lock-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:calc(14px * var(--fs,1))}
 .muted{color:var(--muted)}
@@ -383,6 +385,11 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
         <ul class="tasks" data-section="today" id="list-today"></ul>
                 <form class="add" data-section="today"><input id="add-today" placeholder="Bugün mutlaka yapılacak…" maxlength="200" autocomplete="off"><select id="est-today" class="est-ui" aria-label="Süre"></select><button aria-label="Ekle"></button></form>
         <ul class="done-list" id="done-today"></ul>
+      </section>
+
+      <section class="sec" id="upcomingSec" hidden>
+        <div class="sec-head"><span class="dot" style="background:var(--lock)"></span><h2>Yaklaşan</h2><span class="count" id="count-upcoming"></span></div>
+        <ul class="tasks" id="list-upcoming"></ul>
       </section>
 
       <section class="sec" data-sec="week">
@@ -849,13 +856,13 @@ function openProjectSheet(pid) {
   const n = pid ? projTasks(pid).length : 0;
   sheet.innerHTML = `<form class="sheet-body" id="projForm">
     <div class="sheet-head"><h3>${pid ? 'Projeyi düzenle' : 'Yeni proje'}</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
-    <label class="field"><span>Proje adı</span><input id="p-name" value="${esc(pr.name)}" maxlength="80" required placeholder="Örn. Masa saati"></label>
-    <div class="field"><span>Renk</span><div class="swatches" id="p-color">${PCOLORS.map(c => `<button type="button" data-pc="${c}" style="background:${c}" aria-label="Renk" aria-pressed="${c === pr.color}"></button>`).join('')}</div></div>
-    ${pid && !pr.archived ? `<div class="field"><span>Sıra</span><div class="row-btns"><button type="button" class="btn small" data-mv="-1">← Sola</button><button type="button" class="btn small" data-mv="1">Sağa →</button></div></div>` : ''}
     <div class="sheet-actions"><span class="lead">
       ${pid ? `<button type="button" class="btn" data-arch>${pr.archived ? 'Arşivden çıkar' : 'Arşivle'}</button><button type="button" class="btn danger" data-del>Sil</button>` : ''}</span>
       <button type="submit" class="btn primary">${pid ? 'Kaydet' : 'Oluştur'}</button></div>
-  </form>`;
+      <label class="field"><span>Proje adı</span><input id="p-name" value="${esc(pr.name)}" maxlength="80" required placeholder="Örn. Masa saati"></label>
+    <div class="field"><span>Renk</span><div class="swatches" id="p-color">${PCOLORS.map(c => `<button type="button" data-pc="${c}" style="background:${c}" aria-label="Renk" aria-pressed="${c === pr.color}"></button>`).join('')}</div></div>
+    ${pid && !pr.archived ? `<div class="field"><span>Sıra</span><div class="row-btns"><button type="button" class="btn small" data-mv="-1">← Sola</button><button type="button" class="btn small" data-mv="1">Sağa →</button></div></div>` : ''}
+</form>`;
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
   wirePress($('#p-color', sheet), 'pc', v => sheetState.color = v);
   sheet.querySelectorAll('[data-mv]').forEach(b => b.onclick = () => {
@@ -1142,6 +1149,14 @@ function renderToday() {
   banner.hidden = !future;
   banner.innerHTML = future ? `<div class="plan-banner"><span><b>${dayLabel(v)} için planlıyorsun.</b> Buraya eklediklerin ${fmtLong(v)} sabahı "Bugün mutlaka"da olur, ertelenmiş sayılmaz.</span><button class="btn small" data-act="goToday">Bugüne dön</button></div>` : '';
   $('#todayTitle').textContent = `${dayLabel(v)} mutlaka`;
+  const upcoming = future ? [] : all.filter(x => x.section === 'today' && !x.done && (x.day || t) > t).sort((a, b) => a.day < b.day ? -1 : a.day > b.day ? 1 : byOrder(a, b));
+  $('#upcomingSec').hidden = !upcoming.length;
+  $('#count-upcoming').textContent = upcoming.length ? String(upcoming.length) : '';
+  let lastDay = '';
+  $('#list-upcoming').innerHTML = upcoming.map(x => {
+    const h = x.day !== lastDay ? `<li class="ghead"><button class="gt" data-act="planDay" data-k="${x.day}">${dayLabel(x.day)} · ${fmtLong(x.day)} ›</button></li>` : '';
+    lastDay = x.day; return h + taskRow(x, { drag: false });
+  }).join('');
   $('#add-today').placeholder = `${dayLabel(v)} mutlaka yapılacak…`;
 
   for (const s of ['today','week','someday']) {
@@ -1405,8 +1420,12 @@ function openTaskSheet(id) {
   const x = store.tasks.get(id); if (!x) return;
   sheetState = { kind: 'task', id, est: x.est || 0, section: x.section, delArmed: false, prog: x.prog || 0, subs: (x.subs || []).map(s => ({ ...s })) };
   sheet.innerHTML = `<form class="sheet-body" id="taskForm">
-    <div class="sheet-head"><h3>Görevi düzenle</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
-    <label class="field"><span>Görev</span><input id="f-title" value="${esc(x.title)}" maxlength="200" required></label>
+    <div class="sheet-head"><h3>Görevi düzenle</h3><button type="submit" class="btn primary small">Kaydet</button><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    <div class="sheet-actions"><span class="lead">
+      ${!x.done ? `<button type="button" class="btn pinb" data-pin>${ICON.pin} ${x.locked ? 'Sabitten çıkar' : 'Sabitle'}</button>` : ''}
+      ${!x.done && x.section !== 'project' ? ((x.section === 'today' && (x.day || today()) > today()) ? '<button type="button" class="btn" data-day="today">Bugüne al</button>' : '<button type="button" class="btn" data-day="tomorrow">Yarına at</button>') : ''}
+      <button type="button" class="btn danger" data-del>Sil</button></span></div>
+      <label class="field"><span>Görev</span><input id="f-title" value="${esc(x.title)}" maxlength="200" required></label>
     ${!x.done ? `<div class="field" id="f-prog-wrap"><span>İlerleme</span>
       <div class="progress-field" id="f-prog-manual" ${(x.subs || []).length ? 'hidden' : ''}><input type="range" id="f-prog" min="0" max="100" step="10" value="${x.prog || 0}" aria-label="İlerleme yüzdesi"><output id="f-prog-out">%${x.prog || 0}</output></div>
       <span id="f-prog-auto" class="muted" ${(x.subs || []).length ? '' : 'hidden'}>Alt görevlerden hesaplanıyor.</span></div>` : ''}
@@ -1424,12 +1443,7 @@ function openTaskSheet(id) {
       ${activeProjects().length ? `<div class="send"><b>Projeye taşı</b><div class="row-btns"><select id="f-toproj">${activeProjects().map(pr => `<option value="${pr.id}" ${pr.id === x.projectId ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</select><button type="button" class="btn" data-toproj>Taşı</button></div></div>` : ''}`}
     ${x.recurId ? '<p class="muted" style="margin:0;font-size:13px">Tekrarlayan görev. Kuralı Tekrarlar sekmesinden değiştirebilirsin.</p>' : ''}
     ${(x.postponed || 0) ? `<p class="muted" style="margin:0;font-size:13px">${x.postponed} kez ertelendi.</p>` : ''}
-    <div class="sheet-actions"><span class="lead">
-      ${!x.done ? `<button type="button" class="btn pinb" data-pin>${ICON.pin} ${x.locked ? 'Sabitlemeyi kaldır' : 'Başa sabitle'}</button>` : ''}
-      ${!x.done && x.section !== 'project' ? ((x.section === 'today' && (x.day || today()) > today()) ? '<button type="button" class="btn" data-day="today">Bugüne al</button>' : '<button type="button" class="btn" data-day="tomorrow">Yarına at</button>') : ''}
-      <button type="button" class="btn danger" data-del>Sil</button></span>
-      <button type="submit" class="btn primary">Kaydet</button></div>
-  </form>`;
+</form>`;
   subEditor($('#f-subs', sheet), true);
   sheetState.groupId = x.groupId && store.groups.has(x.groupId) ? x.groupId : null;
   const fg = $('#f-grp', sheet);
@@ -1501,7 +1515,9 @@ function openRuleSheet(id) {
   sheetState = { kind:'rule', id, est: r.est || 0, section: r.section, type: r.type, days: new Set(r.days || []), delArmed:false, subs: (r.subs || []).map(s => ({ id: newId(), t: s.t, d: false })) };
   sheet.innerHTML = `<form class="sheet-body" id="ruleForm">
     <div class="sheet-head"><h3>${ICON.repeat} ${id ? 'Tekrarı düzenle' : 'Tekrarlayan görev'}</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
-    <label class="field"><span>Görev</span><input id="r-title" value="${esc(r.title)}" maxlength="200" required placeholder="Örn. 30 dk yürüyüş"></label>
+    <div class="sheet-actions"><span class="lead">${id ? '<button type="button" class="btn danger" data-del>Sil</button>' : ''}</span>
+      <button type="submit" class="btn primary">Kaydet</button></div>
+      <label class="field"><span>Görev</span><input id="r-title" value="${esc(r.title)}" maxlength="200" required placeholder="Örn. 30 dk yürüyüş"></label>
     <div class="field"><span>Alt görevler (her seferinde eklenir)</span><div id="r-subs" class="sec"></div></div>
     <label class="field"><span>Not</span><textarea id="r-note" rows="2" maxlength="2000">${esc(r.note || '')}</textarea></label>
     <div class="field"><span>Ne sıklıkla?</span><div class="seg" id="r-type">
@@ -1511,9 +1527,7 @@ function openRuleSheet(id) {
     <label class="field" id="r-dom-wrap" ${r.type === 'monthly' ? '' : 'hidden'}><span>Ayın kaçıncı günü?</span><input id="r-dom" type="number" min="1" max="31" value="${r.dom || 1}" inputmode="numeric"></label>
     <div class="field"><span>Hangi bölüme düşsün?</span><div class="seg" id="r-sec">${secSeg(r.section)}</div></div>
     <div class="field est-ui"><span>Süre tahmini</span><div class="chips" id="r-est">${estChips(r.est)}</div></div>
-    <div class="sheet-actions"><span class="lead">${id ? '<button type="button" class="btn danger" data-del>Sil</button>' : ''}</span>
-      <button type="submit" class="btn primary">Kaydet</button></div>
-  </form>`;
+</form>`;
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
   subEditor($('#r-subs', sheet), false);
   wirePress($('#r-est', sheet), 'est', v => sheetState.est = Number(v));
@@ -1766,6 +1780,7 @@ document.addEventListener('click', e => {
     case 'newRule': openRuleSheet(null); break;
     case 'openSettings': openSettings(); break;
     case 'goToday': setViewDate(null); break;
+    case 'planDay': setViewDate(b.dataset.k); break;
     case 'gToggle': ui.gClosed = ui.gClosed || {}; ui.gClosed[b.dataset.k] = !ui.gClosed[b.dataset.k]; saveUi(); renderToday(); break;
     case 'gAdd': { const g = store.groups.get(b.dataset.gid); const inp = $('#add-' + b.dataset.sec); if (g && inp) { inp.value = '#' + gslug(g.name) + ' '; inp.focus(); } break; }
     case 'newProject': openProjectSheet(null); break;
