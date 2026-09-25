@@ -3,6 +3,8 @@
 Günlük yapılacaklar uygulaması: **Bugün mutlaka / Bu hafta / Bir gün** bölümleri, kilitli
 kritik görevler, sabah onay ekranı, alt görevler, yüzdelik ilerleme, tekrarlayan görevler ve geçmiş.
 
+**Adres:** https://rumred72.github.io/bugun-mutlaka/
+
 Tek başına çalışan bir web uygulamasıdır (PWA). Sunucu gerekmez; veriler cihazda saklanır,
 internet olmadan da çalışır. İstenirse Google Drive üzerinden cihazlar arasında eşitlenir.
 
@@ -27,7 +29,7 @@ uygulama Drive'ındaki başka hiçbir dosyayı göremez.
    - **Test kullanıcıları / Audience** kısmına kendi Gmail adresini ekle.
 4. **API'ler ve Hizmetler → Kimlik bilgileri → Kimlik bilgisi oluştur → OAuth istemci kimliği**:
    - Uygulama türü: **Web uygulaması**
-   - **Yetkili JavaScript kaynakları:** uygulamanın adresi, ör. `https://KULLANICI.github.io`
+   - **Yetkili JavaScript kaynakları:** `https://rumred72.github.io`
      (sonunda `/` ve klasör yolu olmadan)
    - Oluştur → çıkan **Client ID**'yi kopyala (`….apps.googleusercontent.com`).
 5. Uygulamada Ayarlar → **Google Drive ile eşitleme** → Client ID'yi yapıştır → **Drive'ı bağla**.
