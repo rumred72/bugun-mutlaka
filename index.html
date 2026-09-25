@@ -439,7 +439,7 @@ const sync = (() => {
   const setStatus = st => { S.status = st; setSync(st); if (sheetState?.kind === 'settings') drawDrive(); };
   const tokenOk = () => S.token && Date.now() < S.exp - 60000;
   const LS_STATE = 'bugun-mutlaka-oauth-state';
-  const redirectUri = () => location.origin + location.pathname.replace(/index\.html$/, '');
+  const redirectUri = () => { let p = location.pathname.replace(/index\.html$/, ''); if (!p.endsWith('/')) p += '/'; return location.origin + p; };
   // Google girişi: açılır pencere yerine aynı sayfada Google'a gidip geri döner (telefonda ve ana ekran uygulamasında güvenilir).
   function startAuth() {
     const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
