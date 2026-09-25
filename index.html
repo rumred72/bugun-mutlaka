@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Bugün Mutlaka</title>
-<meta name="description" content="Günlük yapılacaklar: bugün mutlaka, bu hafta, bir gün; kilitli görevler ve sabah planı.">
+<meta name="description" content="Günlük yapılacaklar: bugün mutlaka, bu hafta, bir gün; sabitlenen görevler ve sabah planı.">
 <meta name="theme-color" content="#FAF9F5" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#262624" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
@@ -21,7 +21,7 @@
 <style>
 :root{
   --bg:#FAF9F5; --surface:#FFFFFF; --surface-2:#F0EEE6; --ink:#141413; --muted:#6B6A64; --line:#E3E0D5;
-  --today:#B8452F; --week:#BF8B2E; --someday:#9C9A91; --lock:#D97757; --lock-soft:#F7E9E1; --ok:#5F8D63; --warn:#B8652F;
+  --today:#B8452F; --week:#BF8B2E; --someday:#9C9A91; --lock:var(--accent-l,#D97757); --lock-soft:color-mix(in srgb,var(--lock) 13%,var(--bg)); --ok:#5F8D63; --warn:#B8652F;
   --shadow:0 1px 2px rgba(60,45,30,.05),0 3px 10px rgba(60,45,30,.05);
   --display:"Source Serif 4","Tiempos Headline",Georgia,"Times New Roman",serif;
   --body:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
@@ -30,21 +30,21 @@
   :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg:#262624; --surface:#30302E; --surface-2:#3A3A37; --ink:#F5F4EE; --muted:#A6A49B; --line:#45443F;
-    --today:#E07A62; --week:#D9A955; --someday:#8F8D85; --lock:#E08A6A; --lock-soft:#3D2F29; --ok:#86B58A; --warn:#E39A62;
+    --today:#E07A62; --week:#D9A955; --someday:#8F8D85; --lock:var(--accent-d,#E08A6A); --lock-soft:color-mix(in srgb,var(--lock) 16%,var(--bg)); --ok:#86B58A; --warn:#E39A62;
     --shadow:0 1px 2px rgba(0,0,0,.25),0 4px 14px rgba(0,0,0,.18);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
   --bg:#262624; --surface:#30302E; --surface-2:#3A3A37; --ink:#F5F4EE; --muted:#A6A49B; --line:#45443F;
-  --today:#E07A62; --week:#D9A955; --someday:#8F8D85; --lock:#E08A6A; --lock-soft:#3D2F29; --ok:#86B58A; --warn:#E39A62;
+  --today:#E07A62; --week:#D9A955; --someday:#8F8D85; --lock:var(--accent-d,#E08A6A); --lock-soft:color-mix(in srgb,var(--lock) 16%,var(--bg)); --ok:#86B58A; --warn:#E39A62;
   --shadow:0 1px 2px rgba(0,0,0,.25),0 4px 14px rgba(0,0,0,.18);
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;background:var(--bg);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 [hidden]{display:none!important}
 img{max-width:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;padding-inline:16px;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:calc(15px * var(--fs,1));line-height:1.45;padding-inline:16px;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--lock);outline-offset:2px}
@@ -53,10 +53,10 @@ svg{width:18px;height:18px;flex:none}
 
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 0;margin-inline:-16px;padding-inline:16px}
 .datebar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
-.eyebrow{margin:0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
-h1{margin:2px 0 0;font-family:var(--display);font-size:32px;line-height:1.1;font-weight:600;letter-spacing:-.01em}
+.eyebrow{margin:0;font-size:calc(12px * var(--fs,1));letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{margin:2px 0 0;font-family:var(--display);font-size:calc(32px * var(--fs,1));line-height:1.1;font-weight:600;letter-spacing:-.01em}
 .top-actions{display:flex;align-items:center;gap:6px}
-.sync{border:0;background:none;padding:6px 4px;border-radius:8px;font-size:12px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.sync{border:0;background:none;padding:6px 4px;border-radius:8px;font-size:calc(12px * var(--fs,1));color:var(--muted);display:inline-flex;align-items:center;gap:6px}
 .sync::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--someday)}
 .sync[data-s="ok"]::before{background:var(--ok)}
 .sync[data-s="syncing"]::before{background:var(--week)}
@@ -64,46 +64,41 @@ h1{margin:2px 0 0;font-family:var(--display);font-size:32px;line-height:1.1;font
 .sync[data-s="needauth"]::before{background:var(--lock)}
 .sync[data-s="error"]::before{background:var(--today)}
 .sync[data-s="offline"]::before{background:var(--someday)}
-.drive input{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:14px;color:var(--ink);width:100%}
+.drive input{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:calc(14px * var(--fs,1));color:var(--ink);width:100%}
 .icon-btn{border:0;background:transparent;width:36px;height:36px;border-radius:10px;display:inline-grid;place-items:center;color:var(--muted)}
 .icon-btn:hover{background:var(--surface-2);color:var(--ink)}
 .tabs{display:flex;gap:4px;margin-top:12px;border-bottom:1px solid var(--line)}
 .tabs button{border:0;background:none;padding:10px 12px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
 
-.view{display:flex;flex-direction:column;gap:22px;padding-top:16px}
-.summary{margin:0;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.view{display:flex;flex-direction:column;gap:var(--sec-gap,22px);padding-top:16px}
+.summary{margin:0;color:var(--muted);font-size:calc(14px * var(--fs,1));font-variant-numeric:tabular-nums}
 .summary b{color:var(--ink);font-weight:600}
-.banner{background:color-mix(in srgb,var(--warn) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);color:var(--ink);padding:10px 12px;border-radius:10px;font-size:14px}
+.banner{background:color-mix(in srgb,var(--warn) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);color:var(--ink);padding:10px 12px;border-radius:10px;font-size:calc(14px * var(--fs,1))}
 
-/* locked */
-.locked{background:var(--lock-soft);border:1.5px solid color-mix(in srgb,var(--lock) 55%,transparent);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
-.locked-head{display:flex;align-items:center;gap:8px;color:var(--lock);flex-wrap:wrap}
-.locked-head h2{margin:0;font-family:var(--display);font-size:18px;font-weight:700}
-.locked-head .quota{margin-left:auto;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
-.lcard{background:var(--surface);border-radius:12px;padding:12px;display:flex;gap:12px;align-items:flex-start;box-shadow:var(--shadow)}
-.lcard .title{font-size:17px;font-weight:600}
-.lcard.done .title{text-decoration:line-through;color:var(--muted)}
-.lage{font-size:12.5px;color:var(--today);font-weight:600}
-.lock-empty{margin:0;font-size:14px;color:var(--muted)}
+/* pinned */
+.task.pinned{background:color-mix(in srgb,var(--lock) 9%,var(--surface))}
+.pin-mark{color:var(--lock);display:inline-flex;vertical-align:-2px;margin-right:5px}
+.pin-mark svg{width:15px;height:15px}
+.btn.pinb{color:var(--lock);border-color:color-mix(in srgb,var(--lock) 50%,transparent)}
 
 /* sections */
 .sec{display:flex;flex-direction:column;gap:8px}
 .sec-head{display:flex;align-items:center;gap:8px}
-.sec-head h2{margin:0;font-family:var(--display);font-size:18px;font-weight:700}
+.sec-head h2{margin:0;font-family:var(--display);font-size:calc(18px * var(--fs,1));font-weight:700}
 .dot{width:10px;height:10px;border-radius:50%;flex:none}
 [data-sec="today"] .dot,.dot.today{background:var(--today)}
 [data-sec="week"] .dot,.dot.week{background:var(--week)}
 [data-sec="someday"] .dot,.dot.someday{background:var(--someday)}
-.count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.count{font-size:calc(13px * var(--fs,1));color:var(--muted);font-variant-numeric:tabular-nums}
 .count.over{color:var(--today);font-weight:600}
 .sec-head .spacer{flex:1}
-.collapse{border:0;background:none;color:var(--muted);font-size:13px;padding:4px 6px;border-radius:6px}
+.collapse{border:0;background:none;color:var(--muted);font-size:calc(13px * var(--fs,1));padding:4px 6px;border-radius:6px}
 .collapse:hover{background:var(--surface-2)}
 
-.tasks,.done-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tasks,.done-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--row-gap,6px)}
 .tasks{min-height:6px}
-.task{background:var(--surface);border-radius:12px;display:flex;align-items:flex-start;gap:8px;padding:10px 6px 10px 4px;box-shadow:var(--shadow)}
+.task{background:var(--surface);border-radius:12px;display:flex;align-items:flex-start;gap:8px;padding:var(--row-pad,10px) 6px var(--row-pad,10px) 4px;box-shadow:var(--shadow)}
 .grip{color:var(--muted);opacity:.55;padding:3px 0 0 2px;cursor:grab;touch-action:none;display:grid}
 .grip:hover{opacity:1}
 .check{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:transparent;flex:none;margin-top:1px;display:grid;place-items:center;padding:0;color:#fff}
@@ -114,14 +109,14 @@ h1{margin:2px 0 0;font-family:var(--display);font-size:32px;line-height:1.1;font
 .lcard .check{width:26px;height:26px;border-color:var(--lock)}
 .task-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;border:0;background:none;text-align:left;padding:0}
 .title{font-weight:500;overflow-wrap:anywhere}
-.meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12.5px;color:var(--muted);align-items:center}
+.meta{display:flex;flex-wrap:wrap;gap:6px;font-size:calc(12.5px * var(--fs,1));color:var(--muted);align-items:center}
 .chip{display:inline-flex;align-items:center;gap:4px;background:var(--surface-2);border-radius:6px;padding:1px 7px;font-variant-numeric:tabular-nums}
 .chip svg{width:12px;height:12px}
 .chip.warn{background:color-mix(in srgb,var(--today) 16%,transparent);color:var(--today);font-weight:600}
-.note{font-size:13px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.note{font-size:calc(13px * var(--fs,1));color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
 .col{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
 .subs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
-.subs li{display:flex;align-items:flex-start;gap:8px;font-size:14px}
+.subs li{display:flex;align-items:flex-start;gap:8px;font-size:calc(14px * var(--fs,1))}
 .subcheck{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--line);background:transparent;padding:0;display:grid;place-items:center;color:#fff;flex:none;margin-top:2px}
 .subcheck:hover{border-color:var(--ok)}
 .subcheck svg{width:11px;height:11px;opacity:0}
@@ -130,13 +125,13 @@ h1{margin:2px 0 0;font-family:var(--display);font-size:32px;line-height:1.1;font
 .bar{display:block;height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;width:min(220px,100%);margin-top:3px}
 .bar i{display:block;height:100%;background:var(--ok);border-radius:3px}
 .chip.prog{color:var(--ok);font-weight:600;background:color-mix(in srgb,var(--ok) 14%,transparent)}
-.rv-good{font-size:12.5px;color:var(--ok);font-weight:600}
+.rv-good{font-size:calc(12.5px * var(--fs,1));color:var(--ok);font-weight:600}
 .progress-field{display:flex;align-items:center;gap:12px}
 .progress-field input[type=range]{flex:1;accent-color:var(--lock);padding:0;background:none;border:0}
-.progress-field output{font-family:var(--display);font-size:22px;font-weight:600;min-width:3.2ch;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.progress-field output{font-family:var(--display);font-size:calc(22px * var(--fs,1));font-weight:600;min-width:3.2ch;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
 .backup{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:14px}
-.backup h4{margin:0;font-size:15px}
-.backup p{margin:0;font-size:13px;color:var(--muted)}
+.backup h4{margin:0;font-size:calc(15px * var(--fs,1))}
+.backup p{margin:0;font-size:calc(13px * var(--fs,1));color:var(--muted)}
 .sdone{text-decoration:line-through;color:var(--muted)}
 .sub-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 .sub-list li{display:flex;align-items:center;gap:8px}
@@ -146,14 +141,14 @@ h1{margin:2px 0 0;font-family:var(--display);font-size:32px;line-height:1.1;font
 .done-list .title{text-decoration:line-through;color:var(--muted)}
 .sortable-ghost{opacity:.35}
 .sortable-chosen{box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.empty{font-size:13.5px;color:var(--muted);padding:6px 4px;margin:0}
+.empty{font-size:calc(13.5px * var(--fs,1));color:var(--muted);padding:6px 4px;margin:0}
 
 .add{display:flex;gap:6px}
 .add input,.rv-add input{flex:1;min-width:0;border:1px dashed var(--line);background:transparent;border-radius:10px;padding:9px 12px}
 .add input:focus,.rv-add input:focus{border-style:solid;border-color:var(--ink);background:var(--surface);outline:none}
-.add select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 6px;font-size:13px;color:var(--muted)}
+.add select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 6px;font-size:calc(13px * var(--fs,1));color:var(--muted)}
 .add button,.rv-add button{border:0;background:var(--ink);color:var(--bg);border-radius:10px;width:40px;display:grid;place-items:center}
-.add-warn{background:color-mix(in srgb,var(--today) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--today) 35%,transparent);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:8px}
+.add-warn{background:color-mix(in srgb,var(--today) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--today) 35%,transparent);border-radius:10px;padding:10px 12px;font-size:calc(14px * var(--fs,1));display:flex;flex-direction:column;gap:8px}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap}
 
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
@@ -164,35 +159,35 @@ h1{margin:2px 0 0;font-family:var(--display);font-size:32px;line-height:1.1;font
 .btn.lockb.solid{background:var(--lock);color:#fff;border-color:var(--lock)}
 .add button{background:var(--lock);color:#fff}
 .btn.danger{color:var(--today)}
-.btn.small{padding:5px 10px;font-size:13px}
+.btn.small{padding:5px 10px;font-size:calc(13px * var(--fs,1))}
 
 /* sheet */
 dialog{border:0;padding:0;border-radius:18px;background:var(--surface);color:var(--ink);width:min(520px,calc(100% - 24px));max-height:calc(100% - 32px);box-shadow:0 20px 60px rgba(0,0,0,.3)}
 dialog::backdrop{background:rgba(10,14,22,.45)}
 .sheet-body{padding:18px;display:flex;flex-direction:column;gap:14px}
 .sheet-head{display:flex;align-items:center;gap:8px}
-.sheet-head h3{margin:0;font-family:var(--display);font-size:20px;flex:1;display:flex;align-items:center;gap:6px}
-.field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);font-weight:500}
-.field input,.field textarea,.field select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:15px;color:var(--ink);resize:vertical}
+.sheet-head h3{margin:0;font-family:var(--display);font-size:calc(20px * var(--fs,1));flex:1;display:flex;align-items:center;gap:6px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:calc(13px * var(--fs,1));color:var(--muted);font-weight:500}
+.field input,.field textarea,.field select{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 11px;font-size:calc(15px * var(--fs,1));color:var(--ink);resize:vertical}
 .chips,.seg{display:flex;flex-wrap:wrap;gap:6px}
-.chips button,.seg button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 12px;font-size:13.5px;color:var(--ink)}
+.chips button,.seg button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 12px;font-size:calc(13.5px * var(--fs,1));color:var(--ink)}
 .chips button[aria-pressed="true"],.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .sheet-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .sheet-actions .lead{margin-right:auto;display:flex;gap:8px;flex-wrap:wrap}
-.confirm{background:var(--lock-soft);border-radius:12px;padding:12px;font-size:14px;display:flex;flex-direction:column;gap:10px}
-.lock-note{margin:0;background:var(--lock-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.confirm{background:var(--lock-soft);border-radius:12px;padding:12px;font-size:calc(14px * var(--fs,1));display:flex;flex-direction:column;gap:10px}
+.lock-note{margin:0;background:var(--lock-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:calc(14px * var(--fs,1))}
 .muted{color:var(--muted)}
 .stepper{display:flex;align-items:center;gap:10px}
-.stepper button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:18px}
-.stepper output{font-family:var(--display);font-size:22px;font-weight:700;min-width:1.5em;text-align:center;color:var(--ink)}
+.stepper button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:calc(18px * var(--fs,1))}
+.stepper output{font-family:var(--display);font-size:calc(22px * var(--fs,1));font-weight:700;min-width:1.5em;text-align:center;color:var(--ink)}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.set-row p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.set-row p{margin:2px 0 0;font-size:calc(13px * var(--fs,1));color:var(--muted)}
 
 /* review */
 .review{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 24px)}
 .review-inner{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-.review h2{margin:0;font-family:var(--display);font-size:28px;line-height:1.1;text-wrap:balance}
-.review h3{margin:6px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.review h2{margin:0;font-family:var(--display);font-size:calc(28px * var(--fs,1));line-height:1.1;text-wrap:balance}
+.review h3{margin:6px 0 0;font-size:calc(13px * var(--fs,1));letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .review p.lead{margin:0;color:var(--muted)}
 .steps{display:flex;gap:6px}
 .steps span{height:4px;flex:1;border-radius:2px;background:var(--line)}
@@ -201,10 +196,10 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
 .rv-item{background:var(--surface);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow)}
 .rv-item.is-locked{border:1.5px solid color-mix(in srgb,var(--lock) 55%,transparent)}
 .rv-choices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.rv-choices button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 4px;font-size:13px;font-weight:600}
+.rv-choices button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:7px 4px;font-size:calc(13px * var(--fs,1));font-weight:600}
 .rv-choices button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .rv-choices button.del[aria-pressed="true"]{background:var(--today);border-color:var(--today);color:#fff}
-.rv-warn{font-size:12.5px;color:var(--today);font-weight:600}
+.rv-warn{font-size:calc(12.5px * var(--fs,1));color:var(--today);font-weight:600}
 .rv-foot{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;position:sticky;bottom:0;background:var(--bg);padding-block:12px}
 .pick{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:12px;padding:12px;border:1.5px solid transparent;text-align:left;width:100%;box-shadow:var(--shadow)}
 .pick[aria-pressed="true"]{border-color:var(--lock);background:var(--lock-soft)}
@@ -219,16 +214,16 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
 .rule{background:var(--surface);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow);width:100%;border:0;text-align:left}
 .rule .dot{margin-top:0}
 .rule-body{flex:1;min-width:0}
-.intro{margin:0;color:var(--muted);font-size:14px;max-width:60ch}
+.intro{margin:0;color:var(--muted);font-size:calc(14px * var(--fs,1));max-width:60ch}
 
 /* history */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .stat{background:var(--surface);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
-.stat .v{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
-.stat .l{font-size:12px;color:var(--muted);margin-top:2px}
+.stat .v{font-family:var(--display);font-size:calc(26px * var(--fs,1));font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .l{font-size:calc(12px * var(--fs,1));color:var(--muted);margin-top:2px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;max-width:420px}
-.cal .h{font-size:11px;color:var(--muted);text-align:center;font-weight:600}
-.day{aspect-ratio:1;border:0;border-radius:8px;background:var(--surface-2);position:relative;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink);padding:0;max-width:100%}
+.cal .h{font-size:calc(11px * var(--fs,1));color:var(--muted);text-align:center;font-weight:600}
+.day{aspect-ratio:1;border:0;border-radius:8px;background:var(--surface-2);position:relative;font-size:calc(12px * var(--fs,1));font-variant-numeric:tabular-nums;color:var(--ink);padding:0;max-width:100%}
 .day[data-l="1"]{background:color-mix(in srgb,var(--ok) 25%,var(--surface-2))}
 .day[data-l="2"]{background:color-mix(in srgb,var(--ok) 45%,var(--surface-2))}
 .day[data-l="3"]{background:color-mix(in srgb,var(--ok) 68%,var(--surface-2));color:#fff}
@@ -239,19 +234,24 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
 .day i{position:absolute;right:4px;top:4px;width:7px;height:7px;border-radius:50%}
 .day i.ok{background:var(--lock)}
 .day i.miss{border:2px solid var(--today);width:8px;height:8px}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:calc(12px * var(--fs,1));color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:5px}
 .legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
 .detail{background:var(--surface);border-radius:12px;padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:8px}
-.detail h3,.hsec h3{margin:0;font-family:var(--display);font-size:17px}
+.detail h3,.hsec h3{margin:0;font-family:var(--display);font-size:calc(17px * var(--fs,1))}
 .detail ul{margin:0;padding-left:18px}
 .hsec{display:flex;flex-direction:column;gap:10px}
 
-.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:30;max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:calc(14px * var(--fs,1));opacity:0;pointer-events:none;transition:.2s;z-index:30;max-width:calc(100% - 32px)}
 .toast.show{opacity:1;transform:translateX(-50%)}
-@media (max-width:600px){ input,select,textarea{font-size:16px!important} }
-@media (max-width:420px){ h1{font-size:26px} .stats .v{font-size:22px} .rv-choices button{font-size:12px} }
+@media (max-width:600px){ input,select,textarea{font-size:calc(16px * var(--fs,1))!important} }
+@media (max-width:420px){ h1{font-size:calc(26px * var(--fs,1))} .stats .v{font-size:calc(22px * var(--fs,1))} .rv-choices button{font-size:calc(12px * var(--fs,1))} }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swatches button{width:34px;height:34px;border-radius:50%;border:2px solid transparent;box-shadow:inset 0 0 0 3px var(--surface);padding:0}
+.swatches button[aria-pressed="true"]{border-color:var(--ink)}
+.ap-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.ap-row .progress-field{flex:1;min-width:180px;max-width:280px}
 </style>
 </head>
 <body>
@@ -276,7 +276,6 @@ dialog::backdrop{background:rgba(10,14,22,.45)}
     <section class="view" id="view-today">
       <div id="banner" hidden></div>
       <p class="summary" id="summary"></p>
-      <section class="locked" id="lockedBox"></section>
 
       <section class="sec" data-sec="today">
         <div class="sec-head"><span class="dot"></span><h2>Bugün mutlaka</h2><span class="count" id="count-today"></span></div>
@@ -322,6 +321,7 @@ const ICON = {
   plus: SVG('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
   gear: SVG('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
   repeat: SVG('<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>'),
+  pin: SVG('<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.8a2 2 0 0 0-1.1-1.8l-1.8-.9A2 2 0 0 1 15 10.8V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.8a2 2 0 0 1-1.1 1.7l-1.8.9A2 2 0 0 0 5 15.2z"/>'),
   clock: SVG('<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>'),
   list: SVG('<line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><polyline points="3 6 4.5 7.5 7 5"/><polyline points="3 12 4.5 13.5 7 11"/><polyline points="3 18 4.5 19.5 7 17"/>'),
   x: SVG('<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>'),
@@ -350,6 +350,20 @@ const byOrder = (a, b) => (a.order||0) - (b.order||0);
 let ui = { tab:'today', somedayOpen:false, selDay:null };
 try { Object.assign(ui, JSON.parse(localStorage.getItem(LS_UI) || '{}')); } catch {}
 const saveUi = () => { try { localStorage.setItem(LS_UI, JSON.stringify(ui)); } catch {} };
+const ACCENTS = { clay: ['#D97757', '#E08A6A', 'Turuncu'], blue: ['#3B6FD8', '#7C9BF0', 'Mavi'], green: ['#3C8B5E', '#6FC08F', 'Yeşil'],
+  purple: ['#7A56C9', '#A98BEA', 'Mor'], rose: ['#C8457A', '#EB7FA8', 'Pembe'], ink: ['#44433E', '#CFCDC4', 'Koyu gri'] };
+const DENSITY = { compact: [5, 3, 16], normal: [10, 6, 22], relaxed: [15, 10, 28] };
+function applyAppearance() {
+  const root = document.documentElement, st = root.style;
+  st.setProperty('--fs', String(ui.fs || 1));
+  const d = DENSITY[ui.density] || DENSITY.normal;
+  st.setProperty('--row-pad', d[0] + 'px'); st.setProperty('--row-gap', d[1] + 'px'); st.setProperty('--sec-gap', d[2] + 'px');
+  const a = ACCENTS[ui.accent] || ACCENTS.clay;
+  st.setProperty('--accent-l', a[0]); st.setProperty('--accent-d', a[1]);
+  if (ui.headFont === 'sans') st.setProperty('--display', 'var(--body)'); else st.removeProperty('--display');
+  if (ui.theme === 'light' || ui.theme === 'dark') root.dataset.theme = ui.theme; else delete root.dataset.theme;
+}
+applyAppearance();
 
 /* ---------- store & backends ---------- */
 const store = { tasks:new Map(), recurring:new Map(), days:new Map(), meta:null };
@@ -484,7 +498,7 @@ function onData(kind, payload) {
   loaded.add(kind);
   if (!ready && ['tasks','recurring','days','meta'].every(k => loaded.has(k))) {
     ready = true;
-    if (!store.meta) putMeta({ lastReview: today(), lockLimit: 3, todayLimit: 5 });
+    if (!store.meta) putMeta({ lastReview: today(), todayLimit: 5 });
   }
   if (ready) maybeReview();
   scheduleRender();
@@ -518,12 +532,12 @@ function remove(coll, id) {
   return enqueue(`${coll}/${id}`, () => backend.del(`${coll}/${id}`));
 }
 function putMeta(patch) {
-  store.meta = { lastReview: today(), lockLimit: 3, todayLimit: 5, ...(store.meta || {}), ...patch };
+  store.meta = { lastReview: today(), todayLimit: 5, ...(store.meta || {}), ...patch };
   const clean = { ...store.meta };
   scheduleRender();
   return enqueue('meta/state', () => backend.set('meta/state', clean));
 }
-const meta = () => store.meta || { lockLimit: 3, todayLimit: 5 };
+const meta = () => store.meta || { todayLimit: 5 };
 const tasksArr = () => [...store.tasks.values()];
 function dayDoc(d) {
   const x = store.days.get(d);
@@ -545,7 +559,6 @@ function createTask(p) {
   return id;
 }
 function moveTask(x, section, order) {
-  if (x.locked) return;
   const t = today();
   put('tasks', x.id, { ...x, section, order: order ?? endOrder(section), day: section === 'today' ? t : x.day, weekOf: section === 'week' ? mondayOf(t) : x.weekOf });
 }
@@ -558,22 +571,15 @@ function toggleDone(x) {
       d.done.push({ id: x.id, t: x.title, s: x.section, l: !!x.locked, e: x.est || 0 });
       if (x.locked && !d.lockedDoneIds.includes(x.id)) d.lockedDoneIds.push(x.id);
     });
-    if (x.locked) {
-      const open = tasksArr().filter(y => y.locked && !y.done && y.id !== x.id).length;
-      toast(open ? 'Kilitli görev bitti.' : 'Bugünün kilitli görevlerinin hepsi bitti.');
-    }
   } else {
     const on = x.doneOn || t;
     put('tasks', x.id, { ...x, done: false, doneOn: null, doneAt: null });
     patchDay(on, d => { d.done = d.done.filter(e => e.id !== x.id); d.lockedDoneIds = d.lockedDoneIds.filter(i => i !== x.id); });
   }
 }
-function lockTask(x) {
-  const t = today(), lim = meta().lockLimit || 3, used = dayDoc(t).lockedIds.length;
-  if (used >= lim) { toast(`Bugün en fazla ${lim} görev kilitleyebilirsin. Sınırı ayarlardan değiştirebilirsin.`); return false; }
-  put('tasks', x.id, { ...x, section: 'today', day: t, locked: true, lockedOn: x.lockedOn || t, order: x.section === 'today' ? x.order : endOrder('today') });
-  patchDay(t, d => { if (!d.lockedIds.includes(x.id)) d.lockedIds.push(x.id); });
-  return true;
+function pinTask(x, on) {
+  put('tasks', x.id, { ...x, locked: !!on, lockedOn: on ? today() : null });
+  toast(on ? 'Başa sabitlendi.' : 'Sabitleme kaldırıldı.');
 }
 const effProg = x => { const n = (x.subs || []).length; return n ? Math.round(100 * x.subs.filter(s => s.d).length / n) : (x.prog || 0); };
 const remainEst = x => Math.round((x.est || 0) * (1 - effProg(x) / 100));
@@ -633,7 +639,7 @@ function startReview(t) {
   const items = tasksArr()
     .filter(x => !x.done && ((x.section === 'today' && (x.day || t) < t) || (x.section === 'week' && (x.weekOf || thisMon) < thisMon)))
     .sort((a, b) => rank(a) - rank(b) || byOrder(a, b))
-    .map(x => ({ id: x.id, choice: x.locked ? 'today' : null }));
+    .map(x => ({ id: x.id, choice: null }));
   review = { date: t, step: items.length ? 1 : 2, items, picks: new Set() };
   renderReview();
 }
@@ -648,14 +654,12 @@ function applyReviewStep1() {
     if (it.choice === 'week') put('tasks', x.id, { ...x, ...base, section: 'week', weekOf: thisMon });
     if (it.choice === 'someday') put('tasks', x.id, { ...x, ...base, section: 'someday' });
   }
-  const carried = review.items.filter(it => store.tasks.get(it.id)?.locked).map(it => it.id);
-  if (carried.length) patchDay(t, d => { for (const id of carried) if (!d.lockedIds.includes(id)) d.lockedIds.push(id); });
   review.step = 2;
   renderReview();
 }
 function finishReview() {
   const t = review.date;
-  for (const id of review.picks) { const x = store.tasks.get(id); if (x && !x.locked) lockTask(x); }
+  for (const id of review.picks) { const x = store.tasks.get(id); if (x && !x.locked) put('tasks', x.id, { ...x, locked: true, lockedOn: t }); }
   putMeta({ lastReview: t });
   reviewedDay = t;
   review = null;
@@ -674,14 +678,9 @@ function renderReview() {
       const cur = effProg(x), base = x.progBase || 0, worked = cur > base;
       const next = (x.postponed || 0) + (worked ? 0 : 1);
       const progLine = worked ? `<span class="rv-good">Dün ilerledi: %${base} → %${cur}</span>` : cur ? `<span class="chip prog">%${cur}</span>` : '';
-      if (x.locked) {
-        const age = diffDays(x.lockedOn || t, t);
-        return `<li class="rv-item is-locked"><div class="title">${esc(x.title)}</div>
-          <div class="meta"><span class="chip" style="color:var(--lock)">${ICON.lock} Kilitli · bugüne taşındı</span><span class="rv-warn">${age <= 1 ? 'Dün kilitliydi, bitmedi' : `${age} gündür kilitli, bitmedi`}</span>${progLine}</div></li>`;
-      }
       const btn = (v, l, cls = '') => `<button type="button" class="${cls}" data-act="choose" data-id="${x.id}" data-v="${v}" aria-pressed="${it.choice === v}">${l}</button>`;
       return `<li class="rv-item"><div class="title">${esc(x.title)}</div>
-        <div class="meta">${progLine}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}
+        <div class="meta">${x.locked ? `<span class="chip" style="color:var(--lock)">${ICON.pin}Sabitli</span>` : ''}${progLine}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}
         ${worked ? '' : next >= 3 ? `<span class="rv-warn">Bu ${next}. ertelenişi olacak. Silmeyi ya da takvime yazmayı düşün.</span>` : next > 1 ? `<span>${next - 1} kez ertelendi</span>` : ''}</div>
         <div class="rv-choices">${btn('today','Bugüne al')}${btn('week','Bu hafta')}${btn('someday','Bir gün')}${btn('delete','Sil','del')}</div></li>`;
     };
@@ -692,7 +691,7 @@ function renderReview() {
     el.innerHTML = `<div class="review-inner">${head}
       ${sync.enabled && !sync.tokenOk() ? `<div class="banner" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span>Diğer cihazdaki değişiklikleri almak için önce Drive'dan güncelle.</span><button class="btn small" data-act="rvSync">Drive'dan güncelle</button></div>` : ''}
       <h2>Dünden kalanlara karar ver</h2>
-      <p class="lead">Her görev için bir seçim yap. Kilitli görevler bitene kadar bugünde kalır.</p>
+      <p class="lead">Her görev için bir seçim yap. Sabitlediğin görevler sabitli kalır.</p>
       ${fromDay.length ? `<h3>Bugün mutlaka'dan kalanlar</h3><ol class="rv-list">${fromDay.map(row).join('')}</ol>` : ''}
       ${fromWeek.length ? `<h3>Geçen haftadan kalanlar</h3><ol class="rv-list">${fromWeek.map(row).join('')}</ol>` : ''}
       <div class="rv-foot">
@@ -700,20 +699,18 @@ function renderReview() {
         <button class="btn primary" data-act="step2" ${left ? 'disabled' : ''}>${left ? `${left} karar kaldı` : 'Devam'}</button>
       </div></div>`;
   } else {
-    const lim = meta().lockLimit || 3;
-    const pre = tasksArr().filter(x => x.locked && !x.done).sort(byOrder);
+    const pre = tasksArr().filter(x => x.locked && !x.done && x.section === 'today').sort(byOrder);
     const cands = tasksArr().filter(x => x.section === 'today' && !x.done && !x.locked).sort(byOrder);
-    const room = Math.max(0, lim - pre.length);
     const pick = (x, on, dis) => `<button type="button" class="pick" data-act="pick" data-id="${x.id}" aria-pressed="${on}" ${dis ? 'disabled' : ''}>
         <span class="box">${ICON.check}</span><span class="task-body"><span class="title">${esc(x.title)}</span>
-        <span class="meta">${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${dis ? `<span class="chip" style="color:var(--lock)">${ICON.lock} Zaten kilitli</span>` : ''}</span></span></button>`;
+        <span class="meta">${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${dis ? `<span class="chip" style="color:var(--lock)">${ICON.pin}Zaten sabitli</span>` : ''}</span></span></button>`;
     el.innerHTML = `<div class="review-inner">${head}
-      <h2>Bugün hangi görevler kesin bitecek?</h2>
-      <p class="lead">En fazla ${lim} görev kilitleyebilirsin${pre.length ? `, ${pre.length} tanesi dünden kilitli geldi` : ''}. Kilitlenen görev bitene kadar silinemez ve ertelenemez.</p>
+      <h2>Bugün hangileri öne çıksın?</h2>
+      <p class="lead">İstersen en önemli görevleri seç, listenin başına sabitlensin. Seçmeden de geçebilirsin.</p>
       <div class="rv-list">${pre.map(x => pick(x, true, true)).join('')}${cands.map(x => pick(x, review.picks.has(x.id), false)).join('')}</div>
       ${!cands.length && !pre.length ? '<p class="empty">Bugün mutlaka listesi boş. Aşağıdan bugünün görevlerini ekleyebilirsin.</p>' : ''}
       <form class="rv-add"><input id="rv-add-input" placeholder="Bugün için görev ekle…" maxlength="200" autocomplete="off"><button aria-label="Ekle">${ICON.plus}</button></form>
-      <div class="rv-foot"><span class="muted" style="align-self:center">${review.picks.size + pre.length}/${lim} kilit${room === 0 && !review.picks.size ? ' · hak doldu' : ''}</span>
+      <div class="rv-foot"><span class="muted" style="align-self:center">${review.picks.size + pre.length} sabitli</span>
         <button class="btn primary" data-act="finish">Güne başla</button></div></div>`;
   }
 }
@@ -724,11 +721,8 @@ $('#review').addEventListener('click', e => {
   if (act === 'allToday') { for (const it of review.items) if (!it.choice) it.choice = 'today'; renderReview(); }
   if (act === 'step2') applyReviewStep1();
   if (act === 'pick') {
-    const id = b.dataset.id, lim = meta().lockLimit || 3;
-    const pre = tasksArr().filter(x => x.locked && !x.done).length;
-    if (review.picks.has(id)) review.picks.delete(id);
-    else if (review.picks.size + pre >= lim) { toast(`En fazla ${lim} görev kilitleyebilirsin.`); return; }
-    else review.picks.add(id);
+    const id = b.dataset.id;
+    if (review.picks.has(id)) review.picks.delete(id); else review.picks.add(id);
     renderReview();
   }
   if (act === 'finish') finishReview();
@@ -759,11 +753,11 @@ const subChip = x => { const n = (x.subs || []).length; if (!n) return ''; const
 const subsHtml = x => (x.subs || []).length && !x.done ? `<ul class="subs">${x.subs.map(s => `<li><button class="subcheck" data-act="sub" data-id="${x.id}" data-sid="${s.id}" aria-pressed="${!!s.d}" aria-label="${s.d ? 'Geri al' : 'Tamamla'}: ${esc(s.t)}">${ICON.check}</button><span class="${s.d ? 'sdone' : ''}">${esc(s.t)}</span></li>`).join('')}</ul>` : '';
 function taskRow(x, { drag = true } = {}) {
   const p = x.postponed || 0;
-  return `<li class="task${x.done ? ' done' : ''}" data-id="${x.id}">
+  return `<li class="task${x.done ? ' done' : ''}${x.locked && !x.done ? ' pinned' : ''}" data-id="${x.id}">
     ${drag && !x.done ? `<span class="grip" aria-hidden="true">${ICON.grip}</span>` : '<span style="width:6px"></span>'}
     <button class="check" data-act="toggle" data-id="${x.id}" aria-label="${x.done ? 'Tamamlanmadı olarak işaretle' : 'Tamamla'}" aria-pressed="${!!x.done}">${ICON.check}</button>
     <div class="col"><button class="task-body" data-act="edit" data-id="${x.id}">
-      <span class="title">${esc(x.title)}</span>
+      <span class="title">${x.locked && !x.done ? `<span class="pin-mark" aria-label="Sabitli">${ICON.pin}</span>` : ''}${esc(x.title)}</span>
       ${(x.est || p || x.recurId || (x.subs || []).length || effProg(x)) && !x.done ? `<span class="meta">
         ${progChip(x)}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}
         ${x.recurId ? `<span class="chip">${ICON.repeat}Tekrar</span>` : ''}
@@ -785,10 +779,7 @@ function render() {
 }
 function renderToday() {
   const t = today(), all = tasksArr(), m = meta();
-  const locked = all.filter(x => x.locked && (!x.done || x.doneOn === t)).sort(byOrder);
-  const lockedOpen = locked.filter(x => !x.done);
   const dd = dayDoc(t);
-  const lim = m.lockLimit || 3, used = dd.lockedIds.length;
   const openToday = all.filter(x => x.section === 'today' && !x.done);
   const remainMin = openToday.reduce((s, x) => s + remainEst(x), 0);
 
@@ -796,32 +787,16 @@ function renderToday() {
     `<b>${dd.done.length}</b> bitti · <b>${openToday.length}</b> görev bugün için açık${remainMin ? ` · kalan süre <b>${fmtMin(remainMin)}</b>` : ''}`;
 
   const banner = $('#banner');
-  const evening = new Date().getHours() >= 18 && lockedOpen.length;
   const hasData = store.tasks.size + store.days.size > 5;
   const bkOld = ready && hasData && (!m.lastBackup || diffDays(m.lastBackup, t) >= 14);
-  banner.hidden = !evening && !bkOld;
+  banner.hidden = !bkOld;
   banner.innerHTML = [
-    evening ? `<div class="banner">Saat 18:00'i geçti. ${lockedOpen.length} kilitli görevin hâlâ açık.</div>` : '',
-    bkOld ? `<div class="banner" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:${evening ? '8px' : '0'}"><span>${m.lastBackup ? '2 haftadır yedek almadın.' : 'Henüz hiç yedek almadın.'}</span><button class="btn small" data-act="openSettings">Yedek al</button></div>` : '',
+    bkOld ? `<div class="banner" style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:0"><span>${m.lastBackup ? '2 haftadır yedek almadın.' : 'Henüz hiç yedek almadın.'}</span><button class="btn small" data-act="openSettings">Yedek al</button></div>` : '',
   ].join('');
 
-  $('#lockedBox').innerHTML = `<div class="locked-head">${ICON.lock}<h2>Kilitli</h2>
-      <span class="count">${locked.length ? `${locked.length - lockedOpen.length}/${locked.length} bitti` : ''}</span>
-      <span class="quota">${Math.max(0, lim - used)} kilit hakkın kaldı</span></div>
-    ${locked.length ? locked.map(x => {
-      const age = diffDays(x.lockedOn || t, t);
-      return `<div class="lcard${x.done ? ' done' : ''}">
-        <button class="check" data-act="toggle" data-id="${x.id}" aria-label="${x.done ? 'Tamamlanmadı olarak işaretle' : 'Tamamla'}" aria-pressed="${!!x.done}">${ICON.check}</button>
-        <div class="col"><button class="task-body" data-act="edit" data-id="${x.id}"><span class="title">${esc(x.title)}</span>
-          <span class="meta">${progChip(x)}${x.est ? `<span class="chip">${ICON.clock}${fmtMin(x.est)}</span>` : ''}${subChip(x)}
-          ${!x.done && age >= 1 ? `<span class="lage">${age === 1 ? 'Dün kilitliydi, bitmedi' : `${age} gündür kilitli`}</span>` : ''}
-          ${x.done ? '<span>Bitti</span>' : ''}</span>${progBar(x)}
-          ${x.note && !x.done ? `<span class="note">${esc(x.note)}</span>` : ''}</button>${subsHtml(x)}</div></div>`;
-    }).join('') : `<p class="lock-empty">Bugün kilitli görev yok. Bir göreve dokunup "Kilitle" diyerek günün en kritik işini sabitleyebilirsin.</p>`}`;
-
   for (const s of ['today','week','someday']) {
-    const secTasks = all.filter(x => x.section === s && !x.locked);
-    const open = secTasks.filter(x => !x.done).sort(byOrder);
+    const secTasks = all.filter(x => x.section === s);
+    const open = secTasks.filter(x => !x.done).sort((a, b) => (b.locked ? 1 : 0) - (a.locked ? 1 : 0) || byOrder(a, b));
     const done = secTasks.filter(x => x.done).sort((a, b) => (a.doneAt||0) - (b.doneAt||0));
     const list = $('#list-' + s);
     list.innerHTML = open.map(x => taskRow(x)).join('');
@@ -852,10 +827,9 @@ function renderHistory() {
   let doneWeek = 0, planDone = 0, missed = 0;
   for (const k of weekDays) { const d = dayDoc(k); doneWeek += d.done.length; planDone += d.done.filter(e => e.s === 'today' || e.l).length; missed += d.missed || 0; }
   const rate = planDone + missed ? Math.round(100 * planDone / (planDone + missed)) : null;
-  const lockOk = d => d.lockedIds.length && d.lockedIds.every(id => d.lockedDoneIds.includes(id));
   let streak = 0;
-  if (lockOk(dayDoc(t))) streak++;
-  for (let k = addDays(t, -1); ; k = addDays(k, -1)) { if (lockOk(dayDoc(k))) streak++; else break; if (streak > 3650) break; }
+  if (dayDoc(t).done.length) streak++;
+  for (let k = addDays(t, -1); ; k = addDays(k, -1)) { if (dayDoc(k).done.length) streak++; else break; if (streak > 3650) break; }
 
   const start = addDays(mon, -35);
   const cells = [...Array(42)].map((_, i) => addDays(start, i));
@@ -868,22 +842,21 @@ function renderHistory() {
     <div class="stats">
       <div class="stat"><div class="v">${doneWeek}</div><div class="l">bu hafta biten görev</div></div>
       <div class="stat"><div class="v">${rate === null ? '–' : '%' + rate}</div><div class="l">"bugün mutlaka" planına uyma</div></div>
-      <div class="stat"><div class="v">${streak}</div><div class="l">gün üst üste kilitliler bitti</div></div>
+      <div class="stat"><div class="v">${streak}</div><div class="l">gün üst üste görev bitirdin</div></div>
     </div>
     <div class="hsec"><h3>Son 6 hafta</h3>
       <div class="cal">${DOW_SHORT.map(d => `<span class="h">${d}</span>`).join('')}
       ${cells.map(k => {
         if (k > t) return `<span class="day future">${parseKey(k).getDate()}</span>`;
         const d = dayDoc(k);
-        const lock = d.lockedIds.length ? (lockOk(d) ? 'ok' : (k < t ? 'miss' : '')) : '';
-        return `<button class="day${k === t ? ' is-today' : ''}" data-act="selDay" data-k="${k}" data-l="${lvl(d.done.length)}" aria-pressed="${k === sel}" aria-label="${fmtLong(k)}: ${d.done.length} görev">${parseKey(k).getDate()}${lock ? `<i class="${lock}"></i>` : ''}</button>`;
+        return `<button class="day${k === t ? ' is-today' : ''}" data-act="selDay" data-k="${k}" data-l="${lvl(d.done.length)}" aria-pressed="${k === sel}" aria-label="${fmtLong(k)}: ${d.done.length} görev">${parseKey(k).getDate()}</button>`;
       }).join('')}</div>
-      <div class="legend"><span><i style="background:var(--ok)"></i>Koyu = daha çok görev</span><span><i style="background:var(--lock)"></i>Kilitliler bitti</span><span><i style="border:2px solid var(--today)"></i>Kilitli kaldı</span></div>
+      <div class="legend"><span><i style="background:var(--ok)"></i>Koyu = daha çok görev</span></div>
     </div>
     <div class="detail"><h3>${fmtLong(sel)} ${fmtDow(sel)}</h3>
-      ${sd.done.length || (sd.prog || []).length ? '' : ''}${sd.done.length ? `<ul>${sd.done.map(e => `<li>${e.l ? '<b>Kilitli:</b> ' : ''}${esc(e.t)}${e.e ? ` <span class="muted">(${fmtMin(e.e)})</span>` : ''}</li>`).join('')}</ul>` : '<p class="empty" style="padding:0">Bu gün tamamlanan görev yok.</p>'}
+      ${sd.done.length || (sd.prog || []).length ? '' : ''}${sd.done.length ? `<ul>${sd.done.map(e => `<li>${esc(e.t)}${e.e ? ` <span class="muted">(${fmtMin(e.e)})</span>` : ''}</li>`).join('')}</ul>` : '<p class="empty" style="padding:0">Bu gün tamamlanan görev yok.</p>'}
       ${(sd.prog || []).length ? `<p class="muted" style="margin:4px 0 0;font-size:13px;font-weight:600">İlerleme kaydedilenler</p><ul>${sd.prog.map(e => `<li>${esc(e.t)} <span class="muted">%${e.a} → %${e.b}</span></li>`).join('')}</ul>` : ''}
-      <span class="muted" style="font-size:13px">${[sd.lockedIds.length ? `${sd.lockedDoneIds.length}/${sd.lockedIds.length} kilitli görev bitti` : '', sd.missed ? `${sd.missed} görev ertesi güne sarktı` : ''].filter(Boolean).join(' · ')}</span>
+      <span class="muted" style="font-size:13px">${[sd.missed ? `${sd.missed} görev ertesi güne sarktı` : ''].filter(Boolean).join(' · ')}</span>
     </div>
     <div class="hsec"><h3>En çok ertelenenler</h3>
       ${postponed.length ? `<ul class="tasks">${postponed.map(x => taskRow(x, { drag: false })).join('')}</ul>` : '<p class="empty" style="padding:0">İki kereden fazla ertelenen görev yok.</p>'}
@@ -928,7 +901,7 @@ function openTaskSheet(id) {
   const x = store.tasks.get(id); if (!x) return;
   sheetState = { kind: 'task', id, est: x.est || 0, section: x.section, delArmed: false, prog: x.prog || 0, subs: (x.subs || []).map(s => ({ ...s })) };
   sheet.innerHTML = `<form class="sheet-body" id="taskForm">
-    <div class="sheet-head"><h3>${x.locked ? ICON.lock + ' Kilitli görev' : 'Görevi düzenle'}</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
+    <div class="sheet-head"><h3>Görevi düzenle</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
     <label class="field"><span>Görev</span><input id="f-title" value="${esc(x.title)}" maxlength="200" required></label>
     ${!x.done ? `<div class="field" id="f-prog-wrap"><span>İlerleme</span>
       <div class="progress-field" id="f-prog-manual" ${(x.subs || []).length ? 'hidden' : ''}><input type="range" id="f-prog" min="0" max="100" step="10" value="${x.prog || 0}" aria-label="İlerleme yüzdesi"><output id="f-prog-out">%${x.prog || 0}</output></div>
@@ -936,17 +909,12 @@ function openTaskSheet(id) {
     <div class="field"><span>Alt görevler</span><div id="f-subs" class="sec"></div></div>
     <label class="field"><span>Not</span><textarea id="f-note" rows="2" maxlength="2000">${esc(x.note || '')}</textarea></label>
     <div class="field"><span>Süre tahmini</span><div class="chips" id="f-est">${estChips(x.est)}</div></div>
-    ${x.locked ? '<p class="lock-note">Bu görev kilitli. Bitene kadar silinemez, taşınamaz ve ertelenemez.</p>'
-      : `<div class="field"><span>Bölüm</span><div class="seg" id="f-sec">${secSeg(x.section)}</div></div>`}
+    <div class="field"><span>Bölüm</span><div class="seg" id="f-sec">${secSeg(x.section)}</div></div>
     ${x.recurId ? '<p class="muted" style="margin:0;font-size:13px">Tekrarlayan görev. Kuralı Tekrarlar sekmesinden değiştirebilirsin.</p>' : ''}
     ${(x.postponed || 0) ? `<p class="muted" style="margin:0;font-size:13px">${x.postponed} kez ertelendi.</p>` : ''}
-    <div class="confirm" id="lockConfirm" hidden>
-      <span>Kilitlenen görev bitene kadar <b>silinemez, ertelenemez ve kilidi açılamaz</b>. Bitmezse yarın sabah yine en üstte olur.</span>
-      <div class="row-btns"><button type="button" class="btn lockb solid" data-lockyes>${ICON.lock} Evet, kilitle</button><button type="button" class="btn" data-lockno>Vazgeç</button></div>
-    </div>
     <div class="sheet-actions"><span class="lead">
-      ${!x.locked && !x.done ? `<button type="button" class="btn lockb" data-lock>${ICON.lock} Kilitle</button>` : ''}
-      ${!x.locked ? '<button type="button" class="btn danger" data-del>Sil</button>' : ''}</span>
+      ${!x.done ? `<button type="button" class="btn pinb" data-pin>${ICON.pin} ${x.locked ? 'Sabitlemeyi kaldır' : 'Başa sabitle'}</button>` : ''}
+      <button type="button" class="btn danger" data-del>Sil</button></span>
       <button type="submit" class="btn primary">Kaydet</button></div>
   </form>`;
   subEditor($('#f-subs', sheet), true);
@@ -957,13 +925,10 @@ function openTaskSheet(id) {
     if (m) { m.hidden = !!has; a.hidden = !has; }
   }, 0));
   wirePress($('#f-est', sheet), 'est', v => sheetState.est = Number(v));
-  if (!x.locked) wirePress($('#f-sec', sheet), 'sec', v => sheetState.section = v);
+  wirePress($('#f-sec', sheet), 'sec', v => sheetState.section = v);
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
-  const lb = sheet.querySelector('[data-lock]');
-  if (lb) lb.onclick = () => { $('#lockConfirm', sheet).hidden = false; };
-  const lno = sheet.querySelector('[data-lockno]'); if (lno) lno.onclick = () => { $('#lockConfirm', sheet).hidden = true; };
-  const lyes = sheet.querySelector('[data-lockyes]');
-  if (lyes) lyes.onclick = () => { const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur); if (lockTask(store.tasks.get(id))) sheet.close(); };
+  const pb = sheet.querySelector('[data-pin]');
+  if (pb) pb.onclick = () => { const cur = store.tasks.get(id); if (!cur) return; saveTaskFields(cur); pinTask(store.tasks.get(id), !cur.locked); sheet.close(); };
   const del = sheet.querySelector('[data-del]');
   if (del) del.onclick = () => {
     if (!sheetState.delArmed) { sheetState.delArmed = true; del.textContent = 'Silmek için tekrar dokun'; return; }
@@ -975,7 +940,7 @@ function openTaskSheet(id) {
 function saveTaskFields(x) {
   const title = $('#f-title', sheet).value.trim() || x.title;
   const next = { ...x, title, note: $('#f-note', sheet).value.trim(), est: sheetState.est, subs: cleanSubs(), prog: sheetState.prog };
-  if (!x.locked && sheetState.section !== x.section) {
+  if (sheetState.section !== x.section) {
     const t = today();
     Object.assign(next, { section: sheetState.section, order: endOrder(sheetState.section), day: sheetState.section === 'today' ? t : x.day, weekOf: sheetState.section === 'week' ? mondayOf(t) : x.weekOf });
   }
@@ -1041,8 +1006,17 @@ function openSettings() {
     <div class="stepper"><button type="button" data-step="${key}" data-d="-1" aria-label="Azalt">−</button><output id="o-${key}">${v}</output><button type="button" data-step="${key}" data-d="1" aria-label="Artır">+</button></div></div>`;
   sheet.innerHTML = `<div class="sheet-body">
     <div class="sheet-head"><h3>Ayarlar</h3><button type="button" class="icon-btn" data-close aria-label="Kapat">${ICON.x}</button></div>
-    ${step('lockLimit', m.lockLimit || 3, 1, 5, 'Günlük kilit sayısı', 'Bir günde en fazla kaç görev kilitlenebilir.')}
     ${step('todayLimit', m.todayLimit || 5, 3, 10, '"Bugün mutlaka" sınırı', 'Aşınca uyarı çıkar, istersen yine de eklersin.')}
+    <div class="backup" id="apBox">
+      <h4>Görünüm</h4>
+      <p>Değişiklikler hemen uygulanır. Bu ayarlar sadece bu cihazda geçerli, telefon ve bilgisayar ayrı ayarlanabilir.</p>
+      <div class="ap-row"><b>Yazı boyutu</b><div class="progress-field"><input type="range" id="apFs" min="0.85" max="1.4" step="0.05" value="${ui.fs || 1}" aria-label="Yazı boyutu"><output id="apFsOut">%${Math.round((ui.fs || 1) * 100)}</output></div></div>
+      <div class="field"><span>Satır aralığı</span><div class="seg" id="apDen">${[['compact','Sıkı'],['normal','Normal'],['relaxed','Ferah']].map(([v, l]) => `<button type="button" data-den="${v}" aria-pressed="${(ui.density || 'normal') === v}">${l}</button>`).join('')}</div></div>
+      <div class="field"><span>Tema</span><div class="seg" id="apTh">${[['system','Sistem'],['light','Açık'],['dark','Koyu']].map(([v, l]) => `<button type="button" data-th="${v}" aria-pressed="${(ui.theme || 'system') === v}">${l}</button>`).join('')}</div></div>
+      <div class="field"><span>Vurgu rengi</span><div class="swatches" id="apAcc">${Object.entries(ACCENTS).map(([k, a]) => `<button type="button" data-acc="${k}" style="background:${a[0]}" aria-label="${a[2]}" title="${a[2]}" aria-pressed="${(ui.accent || 'clay') === k}"></button>`).join('')}</div></div>
+      <div class="field"><span>Başlık yazı tipi</span><div class="seg" id="apHf">${[['serif','Tırnaklı'],['sans','Düz']].map(([v, l]) => `<button type="button" data-hf="${v}" aria-pressed="${(ui.headFont || 'serif') === v}">${l}</button>`).join('')}</div></div>
+      <div class="row-btns"><button type="button" class="btn small" id="apReset">Varsayılana dön</button></div>
+    </div>
     <div class="backup">
       <h4>Yedekleme</h4>
       <p>${m.lastBackup ? `Son yedek: ${fmtLong(m.lastBackup)} (${diffDays(m.lastBackup, today()) === 0 ? 'bugün' : diffDays(m.lastBackup, today()) + ' gün önce'})` : 'Henüz yedek almadın.'} Yedek, tüm görevlerini, tekrarlarını ve geçmişini tek bir .json dosyasına kaydeder.</p>
@@ -1053,13 +1027,24 @@ function openSettings() {
     <div class="backup drive" id="driveBox"></div>
     <div class="backup"><h4>Telefona kurmak</h4><p>iPhone: Safari'de Paylaş → Ana Ekrana Ekle. Android: Chrome'da ⋮ → Ana ekrana ekle (ya da Uygulamayı yükle). Kurulunca internetsiz de çalışır.</p></div>
   </div>`;
-  const bounds = { lockLimit:[1,5], todayLimit:[3,10] };
+  const bounds = { todayLimit:[3,10] };
   sheet.querySelector('[data-close]').onclick = () => sheet.close();
   wireBackup();
   drawDrive();
+  const setUi = (k, v) => { ui[k] = v; saveUi(); applyAppearance(); };
+  const fs = $('#apFs', sheet);
+  fs.addEventListener('input', () => { setUi('fs', Number(fs.value)); $('#apFsOut', sheet).textContent = '%' + Math.round(fs.value * 100); });
+  wirePress($('#apDen', sheet), 'den', v => setUi('density', v));
+  wirePress($('#apTh', sheet), 'th', v => setUi('theme', v));
+  wirePress($('#apAcc', sheet), 'acc', v => setUi('accent', v));
+  wirePress($('#apHf', sheet), 'hf', v => setUi('headFont', v));
+  $('#apReset', sheet).onclick = () => {
+    for (const k of ['fs', 'density', 'theme', 'accent', 'headFont']) delete ui[k];
+    saveUi(); applyAppearance(); sheet.close(); openSettings(); toast('Görünüm varsayılana döndü.');
+  };
   sheet.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.step, [lo, hi] = bounds[k];
-    const v = Math.min(hi, Math.max(lo, (meta()[k] || (k === 'lockLimit' ? 3 : 5)) + Number(b.dataset.d)));
+    const v = Math.min(hi, Math.max(lo, (meta()[k] || 5) + Number(b.dataset.d)));
     putMeta({ [k]: v }); $('#o-' + k, sheet).textContent = v;
   }));
   sheet.showModal();
