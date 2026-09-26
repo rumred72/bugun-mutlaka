@@ -1,5 +1,5 @@
 // Uygulamayı internetsiz çalıştırmak için dosyaları önbellekte tutar.
-const CACHE = 'bugun-mutlaka-v13';
+const CACHE = 'bugun-mutlaka-v14';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'vendor/Sortable.min.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 

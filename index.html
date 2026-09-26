@@ -523,7 +523,13 @@ const sync = (() => {
   const setStatus = st => { S.status = st; setSync(st); if (sheetState?.kind === 'settings') drawDrive(); };
   const tokenOk = () => S.token && Date.now() < S.exp - 60000;
   const LS_STATE = 'bugun-mutlaka-oauth-state';
-  const redirectUri = () => { let p = location.pathname.replace(/index\.html$/, ''); if (!p.endsWith('/')) p += '/'; return location.origin + p; };
+  // Google'a her zaman aynı dönüş adresi gider: sitenin kök klasörü (ör. https://rumred72.github.io/bugun-mutlaka/),
+  // uygulama hangi alt adresten, linkten ya da ana ekran simgesinden açılmış olursa olsun.
+  const redirectUri = () => {
+    const seg = location.pathname.split('/').filter(Boolean)[0] || '';
+    const base = location.hostname.endsWith('github.io') && seg && !seg.includes('.') ? `/${seg}/` : location.pathname.replace(/[^/]*$/, '');
+    return location.origin + base;
+  };
   // Google girişi: açılır pencere yerine aynı sayfada Google'a gidip geri döner (telefonda ve ana ekran uygulamasında güvenilir).
   function startAuth() {
     const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -1660,7 +1666,8 @@ function drawDrive() {
     box.innerHTML = `<h4>Google Drive ile eşitleme</h4>
       <p>Şu an veriler sadece bu cihazda. Drive'ı bağlarsan telefon ve bilgisayar aynı listeyi görür, Drive'ında sürekli bir kopya durur. Bunun için bir kerelik Google "Client ID" gerekiyor (kurulum adımları rehberde).</p>
       <input id="drvId" placeholder="xxxxxxxx.apps.googleusercontent.com" autocomplete="off" spellcheck="false" aria-label="Google Client ID">
-      <div class="row-btns"><button type="button" class="btn primary" id="drvConnect">Drive'ı bağla</button></div>`;
+      <div class="row-btns"><button type="button" class="btn primary" id="drvConnect">Drive'ı bağla</button></div>
+      <p class="muted" style="font-size:calc(12.5px * var(--fs,1));overflow-wrap:anywhere">Google Cloud'da "Yetkili yönlendirme URI'leri" kısmında birebir şu adres olmalı: <b>${esc(sync.redirectUri())}</b></p>`;
     const inp = $('#drvId', box);
     $('#drvConnect', box).onclick = () => {
       const v = inp.value.trim();
@@ -1674,6 +1681,7 @@ function drawDrive() {
     <p>Durum: <b>${SYNC_LABEL[S.status] || S.status}</b> · son eşitleme: ${last}. Her değişiklik Drive'a kendiliğinden gider ve her hafta Drive'a tarihli bir yedek bırakılır (son 8 hafta saklanır). Google oturumu saatte bir yenilenir; o zaman üstteki "Drive'a bağlan"a dokunman yeterli.</p>
     <div class="row-btns"><button type="button" class="btn primary" id="drvNow">Şimdi eşitle</button><button type="button" class="btn" id="drvLink">Diğer cihaz için link</button><button type="button" class="btn" id="drvSnaps">Haftalık yedekler</button><button type="button" class="btn danger" id="drvOff">Bağlantıyı kaldır</button></div>
     <p id="drvLinkBox" hidden style="overflow-wrap:anywhere"></p>
+    <p class="muted" style="font-size:calc(12.5px * var(--fs,1));overflow-wrap:anywhere">Google Cloud'da "Yetkili yönlendirme URI'leri" kısmında birebir şu adres olmalı: <b>${esc(sync.redirectUri())}</b></p>
     <div id="drvSnapBox" hidden></div>`;
   $('#drvSnaps', box).onclick = async () => {
     const sb = $('#drvSnapBox', box); sb.hidden = false;
