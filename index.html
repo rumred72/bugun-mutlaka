@@ -527,8 +527,10 @@ const sync = (() => {
   // uygulama hangi alt adresten, linkten ya da ana ekran simgesinden açılmış olursa olsun.
   const redirectUri = () => {
     const seg = location.pathname.split('/').filter(Boolean)[0] || '';
-    const base = location.hostname.endsWith('github.io') && seg && !seg.includes('.') ? `/${seg}/` : location.pathname.replace(/[^/]*$/, '');
-    return location.origin + base;
+    // Google Cloud'daki kayıt sonunda / olmadan yapıldığı için github.io'da adres / olmadan gönderilir;
+    // GitHub Pages bu adresi /'lı sürüme yönlendirir ve #access_token kısmı korunur.
+    if (location.hostname.endsWith('github.io') && seg && !seg.includes('.')) return `${location.origin}/${seg}`;
+    return location.origin + location.pathname.replace(/[^/]*$/, '');
   };
   // Google girişi: açılır pencere yerine aynı sayfada Google'a gidip geri döner (telefonda ve ana ekran uygulamasında güvenilir).
   function startAuth() {
