@@ -1,5 +1,5 @@
 // Tuciwood Stüdyo'yu internetsiz çalıştırmak için dosyaları önbellekte tutar.
-const CACHE = 'tuciwood-studio-v1';
+const CACHE = 'tuciwood-studio-v2';
 const CORE = ['./', 'index.html', 'app.js', 'manifest.webmanifest', 'sample.jpg',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 

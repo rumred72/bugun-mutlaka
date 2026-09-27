@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Tuciwood Stüdyo</title>
 <meta name="theme-color" content="#2A2320">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
@@ -139,6 +141,12 @@ h3:first-child{margin-top:4px}
 .toast.show{opacity:1}
 .hidden-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .lbl-hide{display:none}
+.lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px}
+.lock[hidden],.app[hidden]{display:none}
+.lock form{background:var(--panel);border-radius:20px;padding:26px;max-width:380px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 40px rgba(0,0,0,.12)}
+.lock h1{margin:0;font-size:22px;font-weight:800}
+.lock p{margin:0;color:var(--muted);line-height:1.45;font-size:14px}
+.lock .err{color:#B3261E;font-weight:600;min-height:1.2em}
 
 @media (max-width:820px){
   .app{grid-template-columns:1fr;grid-template-rows:auto auto minmax(0,1fr)}
@@ -153,7 +161,16 @@ h3:first-child{margin-top:4px}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="lock" id="lock" hidden>
+  <form id="lockForm" autocomplete="off">
+    <h1>Bu uygulama özel</h1>
+    <p>Tuciwood Stüdyo yalnızca erişim bağlantısıyla açılır. Size verilen bağlantıyı açın ya da bağlantıyı veya anahtarı buraya yapıştırın.</p>
+    <label class="f">Erişim bağlantısı ya da anahtar<input type="text" id="lockKey" autocapitalize="off" spellcheck="false"></label>
+    <button class="btn pri" type="submit">Aç</button>
+    <div class="err" id="lockErr" role="alert"></div>
+  </form>
+</div>
+<div class="app" id="appRoot" hidden>
   <div class="top">
     <div class="brand">Tuciwood <span>Stüdyo</span></div>
     <button class="ib" id="bUndo" title="Geri al (Ctrl+Z)" aria-label="Geri al"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>

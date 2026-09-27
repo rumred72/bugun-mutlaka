@@ -1411,8 +1411,39 @@ async function saveDesign(over) {
   renderSavedPanel();
 }
 
+/* ---------- Erişim anahtarı ----------
+   Uygulama yalnızca gizli bağlantıyla açılır. Anahtarın kendisi burada yok, yalnızca özeti (SHA-256) var. */
+const KEY_HASH = 'f6f69ad0ddfb02358865744671ea09efda3951d1fb022a1a881a152d2fc733ff';
+const KEY_LS = 'tstudio-key';
+async function sha256(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+const keyFrom = v => { const m = String(v || '').match(/[#&?]k=([A-Za-z0-9]+)/); return m ? m[1] : String(v || '').trim(); };
+async function keyOk(k) { try { return !!k && (await sha256(k)) === KEY_HASH; } catch (e) { return false; } }
+async function gate() {
+  let stored = null; try { stored = localStorage.getItem(KEY_LS); } catch (e) {}
+  const fromUrl = keyFrom(location.hash);
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  for (const k of [fromUrl, stored]) {
+    if (await keyOk(k)) { try { localStorage.setItem(KEY_LS, k); } catch (e) {} start(); return; }
+  }
+  $('#appRoot').hidden = true; $('#lock').hidden = false;
+  let opened = false;
+  const tryOpen = async k => {
+    if (opened || !(await keyOk(k))) return false;
+    opened = true; try { localStorage.setItem(KEY_LS, k); } catch (er) {}
+    $('#lock').hidden = true; start(); return true;
+  };
+  $('#lockForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!(await tryOpen(keyFrom($('#lockKey').value)))) $('#lockErr').textContent = 'Bu anahtar geçerli değil.';
+  });
+  addEventListener('hashchange', async () => {
+    const k = keyFrom(location.hash); history.replaceState(null, '', location.pathname + location.search); await tryOpen(k);
+  });
+}
+
 /* ---------- Başlat ---------- */
 function start() {
+  $('#appRoot').hidden = false;
   let saved = null; try { saved = localStorage.getItem(LS); } catch (e) {}
   try { doc = saved ? JSON.parse(saved) : null; } catch (e) { doc = null; }
   if (!doc || !doc.els || !FORMATS[doc.fmt]) doc = newDoc();
@@ -1422,6 +1453,6 @@ function start() {
   document.fonts.ready.then(() => { requestRender(); if (ui.tab === 'tpl') drawThumbs(); });
   new ResizeObserver(fitCanvas).observe($('#stage'));
 }
-start();
+gate();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
